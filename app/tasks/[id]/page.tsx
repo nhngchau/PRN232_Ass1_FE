@@ -3,8 +3,9 @@ import { api } from "@/lib/api";
 import { TaskDetail } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 
-export default async function TaskDetailPage({ params }: { params: { id: string } }) {
-  const task = await api.get<TaskDetail>(`/api/tasks/${params.id}`);
+export default async function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const task = await api.get<TaskDetail>(`/api/tasks/${id}`);
 
   return (
     <section className="rounded-md bg-white p-6 shadow-sm">

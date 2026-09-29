@@ -5,8 +5,9 @@ import { api } from "@/lib/api";
 import { ProjectDetail } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 
-export default async function ProjectDetailPage({ params }: { params: { id: string } }) {
-  const project = await api.get<ProjectDetail>(`/api/projects/${params.id}`);
+export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const project = await api.get<ProjectDetail>(`/api/projects/${id}`);
 
   return (
     <div className="space-y-6">

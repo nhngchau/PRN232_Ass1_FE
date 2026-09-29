@@ -3,8 +3,9 @@ import { EmptyState } from "@/components/ui/States";
 import { api } from "@/lib/api";
 import { DepartmentDetail } from "@/lib/types";
 
-export default async function DepartmentDetailPage({ params }: { params: { id: string } }) {
-  const department = await api.get<DepartmentDetail>(`/api/departments/${params.id}`);
+export default async function DepartmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const department = await api.get<DepartmentDetail>(`/api/departments/${id}`);
 
   return (
     <div className="space-y-6">
