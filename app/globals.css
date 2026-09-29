@@ -38,3 +38,32 @@
     @apply transition-all duration-200 active:scale-[0.98];
   }
 }
+
+/* ===== Custom Scrollbar ===== */
+
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: oklch(72.34% 0.1854 1.7849) oklch(97% 0.015 350);
+}
+
+    /* Chrome, Edge, Safari */
+    *::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    *::-webkit-scrollbar-track {
+        background: oklch(97% 0.015 350);
+        border-radius: 999px;
+    }
+
+    *::-webkit-scrollbar-thumb {
+        background: oklch(72.34% 0.1854 1.7849);
+        border-radius: 999px;
+        border: 2px solid oklch(97% 0.015 350);
+    }
+
+        *::-webkit-scrollbar-thumb:hover {
+            background: oklch(64% 0.19 2);
+        }
