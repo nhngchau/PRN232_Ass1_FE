@@ -21,6 +21,7 @@ export default function ManageTasksPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [form, setForm] = useState(emptyForm);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [editing, setEditing] = useState<Task | null>(null);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -55,6 +56,7 @@ export default function ManageTasksPage() {
       projectId: task.projectId,
       tagIds: task.tags.map((tag) => tag.tagId)
     } : { ...emptyForm, projectId: projects[0]?.projectId ?? 0 });
+    setFormErrors({});
     setOpen(true);
   };
 
@@ -67,10 +69,15 @@ export default function ManageTasksPage() {
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!form.title.trim() || !form.projectId) {
-      toast("warning", "Title and project are required.");
+    const errors: Record<string, string> = {};
+    if (!form.title.trim()) errors.title = "Task title is required.";
+    if (!form.projectId) errors.projectId = "Project is required.";
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
       return;
     }
+
     setSaving(true);
     const payload = { ...form, dueDate: form.dueDate || null };
     try {
@@ -148,27 +155,69 @@ export default function ManageTasksPage() {
         <form className="grid gap-5 md:grid-cols-2" onSubmit={submit}>
           <div className="md:col-span-2">
             <label className="mb-1 block text-sm font-medium text-theme-text">Title</label>
-            <input className="w-full" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Enter title" maxLength={300} />
+            <input 
+              className={`w-full ${formErrors.title ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}`} 
+              value={form.title} 
+              onChange={(e) => {
+                setForm({ ...form, title: e.target.value });
+                if (formErrors.title) setFormErrors({ ...formErrors, title: "" });
+              }} 
+              placeholder="Enter title" 
+              maxLength={300} 
+            />
+            {formErrors.title && <p className="mt-1 text-sm text-red-600">{formErrors.title}</p>}
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-theme-text">Project</label>
-            <Select className="w-full" value={form.projectId} onChange={(val) => setForm({ ...form, projectId: Number(val) })} options={[{ value: 0, label: "Select project" }, ...projects.map((project) => ({ value: project.projectId, label: project.projectName }))]} placeholder="Select project" />
+            <Select 
+              className={`w-full ${formErrors.projectId ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}`} 
+              value={form.projectId} 
+              onChange={(val) => {
+                setForm({ ...form, projectId: Number(val) });
+                if (formErrors.projectId) setFormErrors({ ...formErrors, projectId: "" });
+              }} 
+              options={[{ value: 0, label: "Select project" }, ...projects.map((project) => ({ value: project.projectId, label: project.projectName }))]} 
+              placeholder="Select project" 
+            />
+            {formErrors.projectId && <p className="mt-1 text-sm text-red-600">{formErrors.projectId}</p>}
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-theme-text">Status</label>
-            <Select className="w-full" value={form.status} onChange={(val) => setForm({ ...form, status: Number(val) })} options={taskStatusOptions} placeholder="Select status" />
+            <Select 
+              className="w-full" 
+              value={form.status} 
+              onChange={(val) => setForm({ ...form, status: Number(val) })} 
+              options={taskStatusOptions} 
+              placeholder="Select status" 
+            />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-theme-text">Priority</label>
-            <Select className="w-full" value={form.priority} onChange={(val) => setForm({ ...form, priority: Number(val) })} options={taskPriorityOptions} placeholder="Select priority" />
+            <Select 
+              className="w-full" 
+              value={form.priority} 
+              onChange={(val) => setForm({ ...form, priority: Number(val) })} 
+              options={taskPriorityOptions} 
+              placeholder="Select priority" 
+            />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-theme-text">Due Date (Optional)</label>
-            <input className="w-full" type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} />
+            <input 
+              className="w-full" 
+              type="date" 
+              value={form.dueDate} 
+              onChange={(e) => setForm({ ...form, dueDate: e.target.value })} 
+            />
           </div>
           <div className="md:col-span-2">
             <label className="mb-1 block text-sm font-medium text-theme-text">Description</label>
-            <textarea className="w-full min-h-[100px]" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Enter description" />
+            <textarea 
+              className="w-full min-h-[100px]" 
+              value={form.description} 
+              onChange={(e) => setForm({ ...form, description: e.target.value })} 
+              placeholder="Enter description" 
+            />
           </div>
           <div className="md:col-span-2">
             <p className="mb-2 text-sm font-medium text-theme-text">Tags</p>

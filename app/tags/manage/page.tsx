@@ -15,6 +15,7 @@ const emptyForm = { tagName: "", color: "#FF6B9D" };
 export default function ManageTagsPage() {
   const [items, setItems] = useState<Tag[]>([]);
   const [form, setForm] = useState(emptyForm);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [editing, setEditing] = useState<Tag | null>(null);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -37,15 +38,20 @@ export default function ManageTagsPage() {
   const begin = (tag?: Tag) => {
     setEditing(tag ?? null);
     setForm(tag ? { tagName: tag.tagName, color: tag.color ?? "#FF6B9D" } : emptyForm);
+    setFormErrors({});
     setOpen(true);
   };
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!form.tagName.trim()) {
-      toast("warning", "Tag name is required.");
+    const errors: Record<string, string> = {};
+    if (!form.tagName.trim()) errors.tagName = "Tag name is required.";
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
       return;
     }
+
     setSaving(true);
     try {
       if (editing) await api.put(`/api/tags/${editing.tagId}`, form);
@@ -124,7 +130,17 @@ export default function ManageTagsPage() {
         <form className="space-y-5" onSubmit={submit}>
           <div>
             <label className="mb-1 block text-sm font-medium text-theme-text">Tag Name</label>
-            <input className="w-full" value={form.tagName} onChange={(e) => setForm({ ...form, tagName: e.target.value })} placeholder="Enter tag name" maxLength={50} />
+            <input 
+              className={`w-full ${formErrors.tagName ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}`} 
+              value={form.tagName} 
+              onChange={(e) => {
+                setForm({ ...form, tagName: e.target.value });
+                if (formErrors.tagName) setFormErrors({ ...formErrors, tagName: "" });
+              }} 
+              placeholder="Enter tag name" 
+              maxLength={50} 
+            />
+            {formErrors.tagName && <p className="mt-1 text-sm text-red-600">{formErrors.tagName}</p>}
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-theme-text">Color</label>

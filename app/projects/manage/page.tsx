@@ -20,6 +20,7 @@ export default function ManageProjectsPage() {
   const [items, setItems] = useState<Project[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [form, setForm] = useState(emptyForm);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [editing, setEditing] = useState<Project | null>(null);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -52,15 +53,27 @@ export default function ManageProjectsPage() {
       status: project.status,
       departmentId: project.departmentId
     } : { ...emptyForm, departmentId: departments[0]?.departmentId ?? 0 });
+    setFormErrors({});
     setOpen(true);
   };
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!form.projectName.trim() || !form.startDate || !form.departmentId) {
-      toast("warning", "Project name, start date, and department are required.");
+    const errors: Record<string, string> = {};
+    
+    if (!form.projectName.trim()) errors.projectName = "Project name is required.";
+    if (!form.startDate) errors.startDate = "Start date is required.";
+    if (!form.departmentId) errors.departmentId = "Department is required.";
+    
+    if (form.startDate && form.endDate && new Date(form.endDate) <= new Date(form.startDate)) {
+      errors.endDate = "End date must be after start date.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
       return;
     }
+
     setSaving(true);
     const payload = { ...form, endDate: form.endDate || null };
     try {
@@ -134,27 +147,77 @@ export default function ManageProjectsPage() {
         <form className="grid gap-5 md:grid-cols-2" onSubmit={submit}>
           <div className="md:col-span-2">
             <label className="mb-1 block text-sm font-medium text-theme-text">Project Name</label>
-            <input className="w-full" value={form.projectName} onChange={(e) => setForm({ ...form, projectName: e.target.value })} placeholder="Enter name" maxLength={200} />
+            <input 
+              className={`w-full ${formErrors.projectName ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}`} 
+              value={form.projectName} 
+              onChange={(e) => {
+                setForm({ ...form, projectName: e.target.value });
+                if (formErrors.projectName) setFormErrors({ ...formErrors, projectName: "" });
+              }} 
+              placeholder="Enter name" 
+              maxLength={200} 
+            />
+            {formErrors.projectName && <p className="mt-1 text-sm text-red-600">{formErrors.projectName}</p>}
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-theme-text">Department</label>
-            <Select className="w-full" value={form.departmentId} onChange={(val) => setForm({ ...form, departmentId: Number(val) })} options={[{ value: 0, label: "Select department" }, ...departments.map((d) => ({ value: d.departmentId, label: d.departmentName }))]} placeholder="Select department" />
+            <Select 
+              className={`w-full ${formErrors.departmentId ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}`} 
+              value={form.departmentId} 
+              onChange={(val) => {
+                setForm({ ...form, departmentId: Number(val) });
+                if (formErrors.departmentId) setFormErrors({ ...formErrors, departmentId: "" });
+              }} 
+              options={[{ value: 0, label: "Select department" }, ...departments.map((d) => ({ value: d.departmentId, label: d.departmentName }))]} 
+              placeholder="Select department" 
+            />
+            {formErrors.departmentId && <p className="mt-1 text-sm text-red-600">{formErrors.departmentId}</p>}
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-theme-text">Status</label>
-            <Select className="w-full" value={form.status} onChange={(val) => setForm({ ...form, status: Number(val) })} options={projectStatusOptions} placeholder="Select status" />
+            <Select 
+              className="w-full" 
+              value={form.status} 
+              onChange={(val) => setForm({ ...form, status: Number(val) })} 
+              options={projectStatusOptions} 
+              placeholder="Select status" 
+            />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-theme-text">Start Date</label>
-            <input className="w-full" type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
+            <input 
+              className={`w-full ${formErrors.startDate ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}`} 
+              type="date" 
+              value={form.startDate} 
+              onChange={(e) => {
+                setForm({ ...form, startDate: e.target.value });
+                if (formErrors.startDate) setFormErrors({ ...formErrors, startDate: "" });
+                if (formErrors.endDate) setFormErrors({ ...formErrors, endDate: "" });
+              }} 
+            />
+            {formErrors.startDate && <p className="mt-1 text-sm text-red-600">{formErrors.startDate}</p>}
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-theme-text">End Date (Optional)</label>
-            <input className="w-full" type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
+            <input 
+              className={`w-full ${formErrors.endDate ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}`} 
+              type="date" 
+              value={form.endDate} 
+              onChange={(e) => {
+                setForm({ ...form, endDate: e.target.value });
+                if (formErrors.endDate) setFormErrors({ ...formErrors, endDate: "" });
+              }} 
+            />
+            {formErrors.endDate && <p className="mt-1 text-sm text-red-600">{formErrors.endDate}</p>}
           </div>
           <div className="md:col-span-2">
             <label className="mb-1 block text-sm font-medium text-theme-text">Description</label>
-            <textarea className="w-full min-h-[100px]" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Enter description" />
+            <textarea 
+              className="w-full min-h-[100px]" 
+              value={form.description} 
+              onChange={(e) => setForm({ ...form, description: e.target.value })} 
+              placeholder="Enter description" 
+            />
           </div>
           <div className="md:col-span-2 flex justify-end gap-3 pt-2">
             <Button disabled={saving}>{saving ? "Saving..." : "Save Project"}</Button>

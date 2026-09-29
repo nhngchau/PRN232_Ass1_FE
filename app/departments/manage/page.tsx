@@ -15,6 +15,7 @@ const emptyForm = { departmentName: "", departmentDescription: "" };
 export default function ManageDepartmentsPage() {
   const [items, setItems] = useState<Department[]>([]);
   const [form, setForm] = useState(emptyForm);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [editing, setEditing] = useState<Department | null>(null);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -37,19 +38,25 @@ export default function ManageDepartmentsPage() {
   const beginCreate = () => {
     setEditing(null);
     setForm(emptyForm);
+    setFormErrors({});
     setOpen(true);
   };
 
   const beginEdit = (department: Department) => {
     setEditing(department);
     setForm({ departmentName: department.departmentName, departmentDescription: department.departmentDescription });
+    setFormErrors({});
     setOpen(true);
   };
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!form.departmentName.trim() || !form.departmentDescription.trim()) {
-      toast("warning", "Name and description are required.");
+    const errors: Record<string, string> = {};
+    if (!form.departmentName.trim()) errors.departmentName = "Department name is required.";
+    if (!form.departmentDescription.trim()) errors.departmentDescription = "Description is required.";
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
       return;
     }
 
@@ -122,11 +129,31 @@ export default function ManageDepartmentsPage() {
         <form className="space-y-5" onSubmit={submit}>
           <div>
             <label className="mb-1 block text-sm font-medium text-theme-text">Department Name</label>
-            <input className="w-full" value={form.departmentName} onChange={(e) => setForm({ ...form, departmentName: e.target.value })} placeholder="Enter name" maxLength={100} />
+            <input 
+              className={`w-full ${formErrors.departmentName ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}`} 
+              value={form.departmentName} 
+              onChange={(e) => {
+                setForm({ ...form, departmentName: e.target.value });
+                if (formErrors.departmentName) setFormErrors({ ...formErrors, departmentName: "" });
+              }} 
+              placeholder="Enter name" 
+              maxLength={100} 
+            />
+            {formErrors.departmentName && <p className="mt-1 text-sm text-red-600">{formErrors.departmentName}</p>}
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-theme-text">Description</label>
-            <textarea className="w-full min-h-[100px]" value={form.departmentDescription} onChange={(e) => setForm({ ...form, departmentDescription: e.target.value })} placeholder="Enter description" maxLength={300} />
+            <textarea 
+              className={`w-full min-h-[100px] ${formErrors.departmentDescription ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}`} 
+              value={form.departmentDescription} 
+              onChange={(e) => {
+                setForm({ ...form, departmentDescription: e.target.value });
+                if (formErrors.departmentDescription) setFormErrors({ ...formErrors, departmentDescription: "" });
+              }} 
+              placeholder="Enter description" 
+              maxLength={300} 
+            />
+            {formErrors.departmentDescription && <p className="mt-1 text-sm text-red-600">{formErrors.departmentDescription}</p>}
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <Button disabled={saving}>{saving ? "Saving..." : "Save Department"}</Button>
