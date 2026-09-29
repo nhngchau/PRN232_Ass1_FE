@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { ProjectStatusBadge } from "@/components/ui/Badge";
 import { Button, DangerButton } from "@/components/ui/Buttons";
 import { Modal } from "@/components/ui/Modal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/States";
 import { Toast, ToastMessage } from "@/components/ui/Toast";
 import { api, ApiClientError } from "@/lib/api";
@@ -25,6 +26,9 @@ export default function ManageProjectsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [toast, setToast] = useState<ToastMessage | null>(null);
+
+  const [deleting, setDeleting] = useState<Project | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -73,14 +77,18 @@ export default function ManageProjectsPage() {
     }
   };
 
-  const remove = async (project: Project) => {
-    if (!window.confirm(`Delete ${project.projectName}?`)) return;
+  const confirmDelete = async () => {
+    if (!deleting) return;
+    setIsDeleting(true);
     try {
-      await api.delete(`/api/projects/${project.projectId}`);
+      await api.delete(`/api/projects/${deleting.projectId}`);
       setToast({ type: "success", text: "Project deleted." });
       load();
     } catch (err) {
       setToast({ type: "error", text: err instanceof ApiClientError ? err.message : "Delete failed." });
+    } finally {
+      setIsDeleting(false);
+      setDeleting(null);
     }
   };
 
@@ -116,7 +124,7 @@ export default function ManageProjectsPage() {
                 <td className="p-4 text-right">
                   <div className="flex justify-end gap-2">
                     <Button onClick={() => begin(project)}>Edit</Button>
-                    <DangerButton onClick={() => remove(project)}>Delete</DangerButton>
+                    <DangerButton onClick={() => setDeleting(project)}>Delete</DangerButton>
                   </div>
                 </td>
               </tr>
@@ -155,6 +163,20 @@ export default function ManageProjectsPage() {
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        open={deleting !== null}
+        onClose={() => setDeleting(null)}
+        onConfirm={confirmDelete}
+        isDeleting={isDeleting}
+        title="Delete Project?"
+        description={
+          <>
+            Are you sure you want to delete <strong>&quot;{deleting?.projectName}&quot;</strong>?<br />
+            This action cannot be undone.
+          </>
+        }
+      />
     </div>
   );
 }

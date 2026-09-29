@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { PriorityBadge, TagPill, TaskStatusBadge } from "@/components/ui/Badge";
 import { Button, DangerButton } from "@/components/ui/Buttons";
 import { Modal } from "@/components/ui/Modal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/States";
 import { Toast, ToastMessage } from "@/components/ui/Toast";
 import { api, ApiClientError } from "@/lib/api";
@@ -26,6 +27,9 @@ export default function ManageTasksPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [toast, setToast] = useState<ToastMessage | null>(null);
+
+  const [deleting, setDeleting] = useState<Task | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -83,14 +87,18 @@ export default function ManageTasksPage() {
     }
   };
 
-  const remove = async (task: Task) => {
-    if (!window.confirm(`Soft delete ${task.title}?`)) return;
+  const confirmDelete = async () => {
+    if (!deleting) return;
+    setIsDeleting(true);
     try {
-      await api.delete(`/api/tasks/${task.taskId}`);
+      await api.delete(`/api/tasks/${deleting.taskId}`);
       setToast({ type: "success", text: "Task soft deleted." });
       load();
     } catch (err) {
       setToast({ type: "error", text: err instanceof ApiClientError ? err.message : "Delete failed." });
+    } finally {
+      setIsDeleting(false);
+      setDeleting(null);
     }
   };
 
@@ -130,7 +138,7 @@ export default function ManageTasksPage() {
                 <td className="p-4 text-right">
                   <div className="flex justify-end gap-2">
                     <Button onClick={() => begin(task)}>Edit</Button>
-                    <DangerButton onClick={() => remove(task)}>Delete</DangerButton>
+                    <DangerButton onClick={() => setDeleting(task)}>Delete</DangerButton>
                   </div>
                 </td>
               </tr>
@@ -173,6 +181,20 @@ export default function ManageTasksPage() {
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        open={deleting !== null}
+        onClose={() => setDeleting(null)}
+        onConfirm={confirmDelete}
+        isDeleting={isDeleting}
+        title="Delete Task?"
+        description={
+          <>
+            Are you sure you want to delete <strong>&quot;{deleting?.title}&quot;</strong>?<br />
+            This task will be removed from active lists.
+          </>
+        }
+      />
     </div>
   );
 }

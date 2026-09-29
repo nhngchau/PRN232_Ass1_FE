@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Button, DangerButton } from "@/components/ui/Buttons";
 import { Modal } from "@/components/ui/Modal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/States";
 import { Toast, ToastMessage } from "@/components/ui/Toast";
 import { api, ApiClientError } from "@/lib/api";
@@ -20,6 +21,9 @@ export default function ManageTagsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [toast, setToast] = useState<ToastMessage | null>(null);
+
+  const [deleting, setDeleting] = useState<Tag | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -54,14 +58,18 @@ export default function ManageTagsPage() {
     }
   };
 
-  const remove = async (tag: Tag) => {
-    if (!window.confirm(`Delete ${tag.tagName}?`)) return;
+  const confirmDelete = async () => {
+    if (!deleting) return;
+    setIsDeleting(true);
     try {
-      await api.delete(`/api/tags/${tag.tagId}`);
+      await api.delete(`/api/tags/${deleting.tagId}`);
       setToast({ type: "success", text: "Tag deleted." });
       load();
     } catch (err) {
       setToast({ type: "error", text: err instanceof ApiClientError ? err.message : "Delete failed." });
+    } finally {
+      setIsDeleting(false);
+      setDeleting(null);
     }
   };
 
@@ -101,7 +109,7 @@ export default function ManageTagsPage() {
                   <td className="p-4 text-right">
                     <div className="flex justify-end gap-2">
                       <Button onClick={() => begin(tag)}>Edit</Button>
-                      <DangerButton onClick={() => remove(tag)}>Delete</DangerButton>
+                      <DangerButton onClick={() => setDeleting(tag)}>Delete</DangerButton>
                     </div>
                   </td>
                 </tr>
@@ -110,6 +118,7 @@ export default function ManageTagsPage() {
           </table>
         </div>
       )}
+      
       <Modal title={editing ? "Edit Tag" : "Create Tag"} open={open} onClose={() => setOpen(false)}>
         <form className="space-y-5" onSubmit={submit}>
           <div>
@@ -128,6 +137,20 @@ export default function ManageTagsPage() {
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        open={deleting !== null}
+        onClose={() => setDeleting(null)}
+        onConfirm={confirmDelete}
+        isDeleting={isDeleting}
+        title="Delete Tag?"
+        description={
+          <>
+            Are you sure you want to delete <strong>&quot;{deleting?.tagName}&quot;</strong>?<br />
+            This action cannot be undone.
+          </>
+        }
+      />
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Button, DangerButton } from "@/components/ui/Buttons";
 import { Modal } from "@/components/ui/Modal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/States";
 import { Toast, ToastMessage } from "@/components/ui/Toast";
 import { api, ApiClientError } from "@/lib/api";
@@ -20,6 +21,9 @@ export default function ManageDepartmentsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [toast, setToast] = useState<ToastMessage | null>(null);
+
+  const [deleting, setDeleting] = useState<Department | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -61,14 +65,18 @@ export default function ManageDepartmentsPage() {
     }
   };
 
-  const remove = async (department: Department) => {
-    if (!window.confirm(`Delete ${department.departmentName}?`)) return;
+  const confirmDelete = async () => {
+    if (!deleting) return;
+    setIsDeleting(true);
     try {
-      await api.delete(`/api/departments/${department.departmentId}`);
+      await api.delete(`/api/departments/${deleting.departmentId}`);
       setToast({ type: "success", text: "Department deleted." });
       load();
     } catch (err) {
       setToast({ type: "error", text: err instanceof ApiClientError ? err.message : "Delete failed." });
+    } finally {
+      setIsDeleting(false);
+      setDeleting(null);
     }
   };
 
@@ -99,7 +107,7 @@ export default function ManageDepartmentsPage() {
                   <td className="p-4 text-right">
                     <div className="flex justify-end gap-2">
                       <Button onClick={() => beginEdit(item)}>Edit</Button>
-                      <DangerButton onClick={() => remove(item)}>Delete</DangerButton>
+                      <DangerButton onClick={() => setDeleting(item)}>Delete</DangerButton>
                     </div>
                   </td>
                 </tr>
@@ -108,6 +116,7 @@ export default function ManageDepartmentsPage() {
           </table>
         </div>
       )}
+      
       <Modal title={editing ? "Edit Department" : "Create Department"} open={open} onClose={() => setOpen(false)}>
         <form className="space-y-5" onSubmit={submit}>
           <div>
@@ -123,6 +132,20 @@ export default function ManageDepartmentsPage() {
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        open={deleting !== null}
+        onClose={() => setDeleting(null)}
+        onConfirm={confirmDelete}
+        isDeleting={isDeleting}
+        title="Delete Department?"
+        description={
+          <>
+            Are you sure you want to delete <strong>&quot;{deleting?.departmentName}&quot;</strong>?<br />
+            This action cannot be undone.
+          </>
+        }
+      />
     </div>
   );
 }
