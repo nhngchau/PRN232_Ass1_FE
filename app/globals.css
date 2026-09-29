@@ -2,21 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: light;
+@layer base {
+  :root {
+    --primary: 62% 0.19 2;
+    --primary-hover: 56% 0.19 2;
+    --accent: 72.34% 0.1854 1.7849;
+    --primary-soft: 94% 0.045 2;
+
+    --background: 98.5% 0.008 350;
+    --surface: 100% 0 0;
+
+    --text: 22% 0.025 265;
+    --text-muted: 48% 0.025 265;
+    --border: 90% 0.012 265;
+  }
 }
 
-body {
-  background: #f7fafc;
-  color: #172033;
+@layer base {
+  body {
+    background-color: oklch(var(--background));
+    color: oklch(var(--text));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 
-input,
-select,
-textarea {
-  @apply rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-ocean focus:ring-2 focus:ring-ocean/20;
-}
+@layer components {
+  input,
+  select,
+  textarea {
+    @apply rounded-xl border border-theme-border bg-surface px-3 py-2 text-sm text-theme-text outline-none transition duration-200 placeholder:text-theme-muted focus:border-accent focus:ring-4 focus:ring-accent/10;
+  }
 
-button {
-  @apply transition;
+  button {
+    @apply transition-all duration-200 active:scale-[0.98];
+  }
 }

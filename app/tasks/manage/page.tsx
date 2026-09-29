@@ -10,6 +10,7 @@ import { api, ApiClientError } from "@/lib/api";
 import { taskPriorityOptions, taskStatusOptions } from "@/lib/constants";
 import { Project, Tag, Task } from "@/lib/types";
 import { toDateInput } from "@/lib/utils";
+import { TaskIcon } from "@/components/ui/Icons";
 
 const emptyForm = { title: "", description: "", status: 0, priority: 1, dueDate: "", projectId: 0, tagIds: [] as number[] };
 
@@ -93,37 +94,82 @@ export default function ManageTasksPage() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3"><h1 className="text-2xl font-bold">Manage Tasks</h1><Button onClick={() => begin()}>Create</Button></div>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
+            <TaskIcon className="h-5 w-5" />
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-theme-text">Manage Tasks</h1>
+        </div>
+        <Button onClick={() => begin()}>Create Task</Button>
+      </div>
       <Toast toast={toast} />
       {error && <ErrorState message={error} />}
       {loading ? <LoadingState /> : items.length === 0 ? <EmptyState label="No active tasks found." /> : (
-        <div className="overflow-x-auto rounded-md border border-slate-200 bg-white">
+        <div className="overflow-x-auto rounded-2xl border border-theme-border bg-surface shadow-sm">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-100"><tr><th className="p-3">Title</th><th className="p-3">Project</th><th className="p-3">Status</th><th className="p-3">Priority</th><th className="p-3">Tags</th><th className="p-3">Actions</th></tr></thead>
+            <thead className="border-b border-theme-border bg-slate-50/80 text-xs uppercase tracking-wider text-theme-muted">
+              <tr>
+                <th className="p-4 font-semibold">Title</th>
+                <th className="p-4 font-semibold">Project</th>
+                <th className="p-4 font-semibold">Status</th>
+                <th className="p-4 font-semibold">Priority</th>
+                <th className="p-4 font-semibold">Tags</th>
+                <th className="p-4 font-semibold text-right">Actions</th>
+              </tr>
+            </thead>
             <tbody>{items.map((task) => (
-              <tr key={task.taskId} className="border-t">
-                <td className="p-3 font-medium">{task.title}</td><td className="p-3">{task.projectName}</td><td className="p-3"><TaskStatusBadge value={task.status} /></td><td className="p-3"><PriorityBadge value={task.priority} /></td>
-                <td className="p-3"><div className="flex flex-wrap gap-1">{task.tags.map((tag) => <TagPill key={tag.tagId} name={tag.tagName} color={tag.color} />)}</div></td>
-                <td className="flex gap-2 p-3"><Button onClick={() => begin(task)}>Edit</Button><DangerButton onClick={() => remove(task)}>Delete</DangerButton></td>
+              <tr key={task.taskId} className="border-b border-theme-border last:border-0 hover:bg-slate-50/50 transition-colors">
+                <td className="p-4 font-bold text-theme-text">{task.title}</td>
+                <td className="p-4 text-theme-muted">{task.projectName}</td>
+                <td className="p-4"><TaskStatusBadge value={task.status} /></td>
+                <td className="p-4"><PriorityBadge value={task.priority} /></td>
+                <td className="p-4"><div className="flex flex-wrap gap-1.5">{task.tags.map((tag) => <TagPill key={tag.tagId} name={tag.tagName} color={tag.color} />)}</div></td>
+                <td className="p-4 text-right">
+                  <div className="flex justify-end gap-2">
+                    <Button onClick={() => begin(task)}>Edit</Button>
+                    <DangerButton onClick={() => remove(task)}>Delete</DangerButton>
+                  </div>
+                </td>
               </tr>
             ))}</tbody>
           </table>
         </div>
       )}
       <Modal title={editing ? "Edit Task" : "Create Task"} open={open} onClose={() => setOpen(false)}>
-        <form className="grid gap-4 md:grid-cols-2" onSubmit={submit}>
-          <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Task title" maxLength={300} />
-          <select value={form.projectId} onChange={(e) => setForm({ ...form, projectId: Number(e.target.value) })}><option value={0}>Select project</option>{projects.map((project) => <option key={project.projectId} value={project.projectId}>{project.projectName}</option>)}</select>
-          <select value={form.status} onChange={(e) => setForm({ ...form, status: Number(e.target.value) })}>{taskStatusOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
-          <select value={form.priority} onChange={(e) => setForm({ ...form, priority: Number(e.target.value) })}>{taskPriorityOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
-          <input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} />
-          <textarea className="md:col-span-2" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description" />
+        <form className="grid gap-5 md:grid-cols-2" onSubmit={submit}>
           <div className="md:col-span-2">
-            <p className="mb-2 text-sm font-medium">Tags</p>
-            <div className="flex flex-wrap gap-2">{tags.map((tag) => <label key={tag.tagId} className="inline-flex items-center gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm"><input type="checkbox" checked={form.tagIds.includes(tag.tagId)} onChange={() => toggleTag(tag.tagId)} />{tag.tagName}</label>)}</div>
+            <label className="mb-1 block text-sm font-medium text-theme-text">Title</label>
+            <input className="w-full" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Enter title" maxLength={300} />
           </div>
-          <Button className="md:col-span-2" disabled={saving}>{saving ? "Saving..." : "Save"}</Button>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-theme-text">Project</label>
+            <select className="w-full" value={form.projectId} onChange={(e) => setForm({ ...form, projectId: Number(e.target.value) })}><option value={0}>Select project</option>{projects.map((project) => <option key={project.projectId} value={project.projectId}>{project.projectName}</option>)}</select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-theme-text">Status</label>
+            <select className="w-full" value={form.status} onChange={(e) => setForm({ ...form, status: Number(e.target.value) })}>{taskStatusOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-theme-text">Priority</label>
+            <select className="w-full" value={form.priority} onChange={(e) => setForm({ ...form, priority: Number(e.target.value) })}>{taskPriorityOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-theme-text">Due Date (Optional)</label>
+            <input className="w-full" type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} />
+          </div>
+          <div className="md:col-span-2">
+            <label className="mb-1 block text-sm font-medium text-theme-text">Description</label>
+            <textarea className="w-full min-h-[100px]" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Enter description" />
+          </div>
+          <div className="md:col-span-2">
+            <p className="mb-2 text-sm font-medium text-theme-text">Tags</p>
+            <div className="flex flex-wrap gap-2">{tags.map((tag) => <label key={tag.tagId} className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-theme-border bg-surface px-3 py-2 text-sm transition-colors hover:border-primary/40"><input type="checkbox" checked={form.tagIds.includes(tag.tagId)} onChange={() => toggleTag(tag.tagId)} className="rounded text-primary focus:ring-primary" />{tag.tagName}</label>)}</div>
+          </div>
+          <div className="md:col-span-2 flex justify-end gap-3 pt-2">
+            <Button disabled={saving}>{saving ? "Saving..." : "Save Task"}</Button>
+          </div>
         </form>
       </Modal>
     </div>

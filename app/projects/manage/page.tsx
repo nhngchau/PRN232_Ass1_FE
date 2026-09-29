@@ -10,6 +10,7 @@ import { api, ApiClientError } from "@/lib/api";
 import { projectStatusOptions } from "@/lib/constants";
 import { Department, Project } from "@/lib/types";
 import { toDateInput } from "@/lib/utils";
+import { ProjectIcon } from "@/components/ui/Icons";
 
 const emptyForm = { projectName: "", description: "", startDate: "", endDate: "", status: 0, departmentId: 0 };
 
@@ -83,32 +84,74 @@ export default function ManageProjectsPage() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3"><h1 className="text-2xl font-bold">Manage Projects</h1><Button onClick={() => begin()}>Create</Button></div>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
+            <ProjectIcon className="h-5 w-5" />
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-theme-text">Manage Projects</h1>
+        </div>
+        <Button onClick={() => begin()}>Create Project</Button>
+      </div>
       <Toast toast={toast} />
       {error && <ErrorState message={error} />}
       {loading ? <LoadingState /> : items.length === 0 ? <EmptyState label="No projects found." /> : (
-        <div className="overflow-x-auto rounded-md border border-slate-200 bg-white">
+        <div className="overflow-x-auto rounded-2xl border border-theme-border bg-surface shadow-sm">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-100"><tr><th className="p-3">Name</th><th className="p-3">Department</th><th className="p-3">Status</th><th className="p-3">Actions</th></tr></thead>
+            <thead className="border-b border-theme-border bg-slate-50/80 text-xs uppercase tracking-wider text-theme-muted">
+              <tr>
+                <th className="p-4 font-semibold">Name</th>
+                <th className="p-4 font-semibold">Department</th>
+                <th className="p-4 font-semibold">Status</th>
+                <th className="p-4 font-semibold text-right">Actions</th>
+              </tr>
+            </thead>
             <tbody>{items.map((project) => (
-              <tr key={project.projectId} className="border-t">
-                <td className="p-3 font-medium">{project.projectName}</td><td className="p-3">{project.departmentName}</td><td className="p-3"><ProjectStatusBadge value={project.status} /></td>
-                <td className="flex gap-2 p-3"><Button onClick={() => begin(project)}>Edit</Button><DangerButton onClick={() => remove(project)}>Delete</DangerButton></td>
+              <tr key={project.projectId} className="border-b border-theme-border last:border-0 hover:bg-slate-50/50 transition-colors">
+                <td className="p-4 font-bold text-theme-text">{project.projectName}</td>
+                <td className="p-4 text-theme-muted">{project.departmentName}</td>
+                <td className="p-4"><ProjectStatusBadge value={project.status} /></td>
+                <td className="p-4 text-right">
+                  <div className="flex justify-end gap-2">
+                    <Button onClick={() => begin(project)}>Edit</Button>
+                    <DangerButton onClick={() => remove(project)}>Delete</DangerButton>
+                  </div>
+                </td>
               </tr>
             ))}</tbody>
           </table>
         </div>
       )}
       <Modal title={editing ? "Edit Project" : "Create Project"} open={open} onClose={() => setOpen(false)}>
-        <form className="grid gap-4 md:grid-cols-2" onSubmit={submit}>
-          <input value={form.projectName} onChange={(e) => setForm({ ...form, projectName: e.target.value })} placeholder="Project name" maxLength={200} />
-          <select value={form.departmentId} onChange={(e) => setForm({ ...form, departmentId: Number(e.target.value) })}><option value={0}>Select department</option>{departments.map((d) => <option key={d.departmentId} value={d.departmentId}>{d.departmentName}</option>)}</select>
-          <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
-          <input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
-          <select value={form.status} onChange={(e) => setForm({ ...form, status: Number(e.target.value) })}>{projectStatusOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
-          <textarea className="md:col-span-2" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description" />
-          <Button className="md:col-span-2" disabled={saving}>{saving ? "Saving..." : "Save"}</Button>
+        <form className="grid gap-5 md:grid-cols-2" onSubmit={submit}>
+          <div className="md:col-span-2">
+            <label className="mb-1 block text-sm font-medium text-theme-text">Project Name</label>
+            <input className="w-full" value={form.projectName} onChange={(e) => setForm({ ...form, projectName: e.target.value })} placeholder="Enter name" maxLength={200} />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-theme-text">Department</label>
+            <select className="w-full" value={form.departmentId} onChange={(e) => setForm({ ...form, departmentId: Number(e.target.value) })}><option value={0}>Select department</option>{departments.map((d) => <option key={d.departmentId} value={d.departmentId}>{d.departmentName}</option>)}</select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-theme-text">Status</label>
+            <select className="w-full" value={form.status} onChange={(e) => setForm({ ...form, status: Number(e.target.value) })}>{projectStatusOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-theme-text">Start Date</label>
+            <input className="w-full" type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-theme-text">End Date (Optional)</label>
+            <input className="w-full" type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
+          </div>
+          <div className="md:col-span-2">
+            <label className="mb-1 block text-sm font-medium text-theme-text">Description</label>
+            <textarea className="w-full min-h-[100px]" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Enter description" />
+          </div>
+          <div className="md:col-span-2 flex justify-end gap-3 pt-2">
+            <Button disabled={saving}>{saving ? "Saving..." : "Save Project"}</Button>
+          </div>
         </form>
       </Modal>
     </div>

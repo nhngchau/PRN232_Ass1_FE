@@ -11,25 +11,30 @@ export default async function HomePage() {
   ]);
 
   return (
-    <div className="space-y-8">
-      <section className="rounded-md bg-white p-6 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-wide text-ocean">PRN232 Assignment 1</p>
-        <h1 className="mt-2 text-3xl font-bold">Welcome to TaskTrack</h1>
-        <p className="mt-2 max-w-2xl text-slate-600">Manage departments, projects, tasks, and tags through a public CRUD workflow.</p>
+    <div className="space-y-10">
+      <section className="relative overflow-hidden rounded-3xl bg-surface p-8 shadow-sm md:p-12">
+        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary-soft opacity-50 blur-3xl"></div>
+        <div className="relative z-10">
+          <p className="mb-3 text-sm font-bold uppercase tracking-wider text-primary">Overview</p>
+          <h1 className="text-3xl font-extrabold tracking-tight text-theme-text md:text-4xl">Welcome to TaskTrack</h1>
+          <p className="mt-4 max-w-2xl text-lg text-theme-muted">Manage departments, projects, tasks, and tags seamlessly in a modern environment.</p>
+        </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-3">
-        <Stat label="Active departments" value={departments.length} />
-        <Stat label="Active projects" value={projects.length} />
-        <Stat label="Active tasks" value={tasks.length} />
+      <section className="grid gap-6 md:grid-cols-3">
+        <Stat label="Departments" value={departments.length} trend="+12%" />
+        <Stat label="Active Projects" value={projects.length} trend="Active" />
+        <Stat label="Tasks Remaining" value={tasks.length} trend="Requires focus" />
       </section>
 
       <section>
-        <h2 className="mb-4 text-xl font-semibold">Active Projects</h2>
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-xl font-bold tracking-tight text-theme-text">Recent Projects</h2>
+        </div>
         {projects.length === 0 ? (
           <EmptyState label="No active projects yet." />
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {projects.map((project) => (
               <ProjectCard key={project.projectId} project={project} />
             ))}
@@ -40,11 +45,14 @@ export default async function HomePage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+function Stat({ label, value, trend }: { label: string; value: number; trend: string }) {
   return (
-    <div className="rounded-md border border-slate-200 bg-white p-5">
-      <p className="text-sm text-slate-600">{label}</p>
-      <p className="mt-2 text-3xl font-bold">{value}</p>
+    <div className="group rounded-2xl border border-theme-border bg-surface p-6 shadow-sm transition-all hover:border-primary/30 hover:shadow-md">
+      <p className="text-sm font-medium text-theme-muted">{label}</p>
+      <div className="mt-4 flex items-end justify-between">
+        <p className="text-4xl font-extrabold tracking-tight text-theme-text">{value}</p>
+        <span className="text-xs font-semibold text-primary">{trend}</span>
+      </div>
     </div>
   );
 }

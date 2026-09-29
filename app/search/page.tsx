@@ -6,6 +6,7 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/ui/States";
 import { api, ApiClientError } from "@/lib/api";
 import { taskPriorityOptions, taskStatusOptions } from "@/lib/constants";
 import { Project, Tag, Task } from "@/lib/types";
+import { SearchIcon } from "@/components/ui/Icons";
 
 export default function SearchPage() {
   const [title, setTitle] = useState("");
@@ -53,11 +54,17 @@ export default function SearchPage() {
   }, [query]);
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Search Tasks</h1>
-      <section className="grid gap-3 rounded-md border border-slate-200 bg-white p-4 md:grid-cols-5">
-        <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Task title" />
-        <select value={status} onChange={(event) => setStatus(event.target.value)}>
+    <div className="space-y-8">
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
+          <SearchIcon className="h-5 w-5" />
+        </div>
+        <h1 className="text-2xl font-bold tracking-tight text-theme-text">Search Tasks</h1>
+      </div>
+      
+      <section className="grid gap-4 rounded-2xl border border-theme-border bg-surface p-6 shadow-sm md:grid-cols-5">
+        <input className="w-full" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Task title" />
+        <select className="w-full" value={status} onChange={(event) => setStatus(event.target.value)}>
           <option value="">Any status</option>
           {taskStatusOptions.map((option) => (
             <option key={option.value} value={option.value}>
@@ -65,7 +72,7 @@ export default function SearchPage() {
             </option>
           ))}
         </select>
-        <select value={priority} onChange={(event) => setPriority(event.target.value)}>
+        <select className="w-full" value={priority} onChange={(event) => setPriority(event.target.value)}>
           <option value="">Any priority</option>
           {taskPriorityOptions.map((option) => (
             <option key={option.value} value={option.value}>
@@ -73,7 +80,7 @@ export default function SearchPage() {
             </option>
           ))}
         </select>
-        <select value={projectId} onChange={(event) => setProjectId(event.target.value)}>
+        <select className="w-full" value={projectId} onChange={(event) => setProjectId(event.target.value)}>
           <option value="">Any project</option>
           {projects.map((project) => (
             <option key={project.projectId} value={project.projectId}>
@@ -81,7 +88,7 @@ export default function SearchPage() {
             </option>
           ))}
         </select>
-        <select value={tagId} onChange={(event) => setTagId(event.target.value)}>
+        <select className="w-full" value={tagId} onChange={(event) => setTagId(event.target.value)}>
           <option value="">Any tag</option>
           {tags.map((tag) => (
             <option key={tag.tagId} value={tag.tagId}>
@@ -91,7 +98,7 @@ export default function SearchPage() {
         </select>
       </section>
       {error && <ErrorState message={error} />}
-      {loading ? <LoadingState /> : tasks.length === 0 ? <EmptyState label="No tasks matched your filters." /> : <div className="space-y-3">{tasks.map((task) => <TaskRow key={task.taskId} task={task} />)}</div>}
+      {loading ? <LoadingState /> : tasks.length === 0 ? <EmptyState label="No tasks matched your filters." /> : <div className="space-y-4">{tasks.map((task) => <TaskRow key={task.taskId} task={task} />)}</div>}
     </div>
   );
 }
