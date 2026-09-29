@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ReactNode, useState } from "react";
-import { MenuIcon, XIcon, HomeIcon, DepartmentIcon, SearchIcon, ProjectIcon, TaskIcon, TagIcon } from "@/components/ui/Icons";
+import { ReactNode, useState, useEffect } from "react";
+import { MenuIcon, XIcon, HomeIcon, DepartmentIcon, SearchIcon, ProjectIcon, TaskIcon, TagIcon, ChevronLeftIcon, ChevronRightIcon } from "@/components/ui/Icons";
 
 const links = [
   { label: "Dashboard", href: "/", icon: HomeIcon },
@@ -21,6 +21,20 @@ const managementLinks = [
 export function Shell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("sidebarCollapsed");
+    if (stored) {
+      setIsDesktopCollapsed(stored === "true");
+    }
+  }, []);
+
+  const toggleDesktopSidebar = () => {
+    const newVal = !isDesktopCollapsed;
+    setIsDesktopCollapsed(newVal);
+    localStorage.setItem("sidebarCollapsed", newVal.toString());
+  };
 
   const renderNavLinks = (items: typeof links, closeMenu?: () => void) => {
     return items.map(({ label, href, icon: Icon }) => {
@@ -30,14 +44,19 @@ export function Shell({ children }: { children: ReactNode }) {
           key={href}
           href={href}
           onClick={closeMenu}
-          className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+          title={isDesktopCollapsed ? label : undefined}
+          className={`flex items-center rounded-xl text-sm font-medium transition-all duration-300 ${
+            isDesktopCollapsed ? "justify-center p-3" : "gap-3 px-3 py-2.5"
+          } ${
             isActive
               ? "bg-primary-soft text-primary"
               : "text-theme-text hover:bg-slate-100 hover:text-primary"
           }`}
         >
-          <Icon className="h-5 w-5" />
-          {label}
+          <Icon className="h-5 w-5 shrink-0" />
+          <span className={`transition-all duration-300 overflow-hidden whitespace-nowrap ${isDesktopCollapsed ? "w-0 opacity-0" : "w-[120px] opacity-100"}`}>
+            {label}
+          </span>
         </Link>
       );
     });
@@ -61,15 +80,25 @@ export function Shell({ children }: { children: ReactNode }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform flex-col border-r border-theme-border bg-surface transition-transform duration-300 lg:static lg:flex lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 transform flex-col border-r border-theme-border bg-surface transition-all duration-300 lg:static lg:flex lg:translate-x-0 ${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        } ${isDesktopCollapsed ? "lg:w-20" : "lg:w-64"} w-64`}
       >
-        <div className="hidden h-16 items-center px-6 lg:flex">
-          <Link href="/" className="flex items-center gap-3 text-xl font-bold tracking-tight text-theme-text">
-            <img src="/tasktrack-logo.png" alt="TaskTrack Logo" className="h-10 w-10 object-contain" />
-            TaskTrack
+        <div className={`hidden items-center lg:flex ${isDesktopCollapsed ? "h-auto flex-col gap-4 py-4" : "h-16 justify-between px-6"}`}>
+          <Link href="/" className="flex items-center gap-3 overflow-hidden" title={isDesktopCollapsed ? "TaskTrack" : undefined}>
+            <img src="/tasktrack-logo.png" alt="TaskTrack Logo" className="h-10 w-10 shrink-0 object-contain" />
+            <span className={`text-xl font-bold tracking-tight text-theme-text whitespace-nowrap transition-all duration-300 overflow-hidden ${isDesktopCollapsed ? "w-0 opacity-0" : "w-[110px] opacity-100"}`}>
+              TaskTrack
+            </span>
           </Link>
+          
+          <button
+            onClick={toggleDesktopSidebar}
+            aria-label={isDesktopCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-theme-muted transition-colors hover:bg-primary-soft hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
+          >
+            {isDesktopCollapsed ? <ChevronRightIcon className="h-5 w-5" /> : <ChevronLeftIcon className="h-5 w-5" />}
+          </button>
         </div>
 
         <div className="flex flex-1 flex-col overflow-y-auto px-4 py-6">
@@ -78,7 +107,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </nav>
           
           <div className="mt-8">
-            <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-theme-muted">
+            <h3 className={`mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-theme-muted transition-all duration-300 overflow-hidden whitespace-nowrap ${isDesktopCollapsed ? "h-0 max-w-0 opacity-0 mb-0" : "h-auto max-w-[150px] opacity-100"}`}>
               Management
             </h3>
             <nav className="space-y-1">
