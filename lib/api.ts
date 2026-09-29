@@ -1,6 +1,6 @@
 import { joinUrl } from "./utils";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+const API_URL = normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000");
 
 export class ApiClientError extends Error {
   errors?: Record<string, string[]>;
@@ -14,7 +14,7 @@ export class ApiClientError extends Error {
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(joinUrl(API_URL, path), {
+  const response = await fetch(joinUrl(API_URL, ensureApiPath(path)), {
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -41,3 +41,14 @@ export const api = {
   put: <T>(path: string, body: unknown) => request<T>(path, { method: "PUT", body: JSON.stringify(body) }),
   delete: (path: string) => request<void>(path, { method: "DELETE" })
 };
+
+function normalizeApiBaseUrl(baseUrl: string) {
+  return baseUrl.trim().replace(/\/+$/, "").replace(/\/api$/i, "");
+}
+
+function ensureApiPath(path: string) {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return normalizedPath.startsWith("/api/") || normalizedPath === "/api"
+    ? normalizedPath
+    : `/api${normalizedPath}`;
+}
