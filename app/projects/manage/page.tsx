@@ -11,6 +11,7 @@ import { projectStatusOptions } from "@/lib/constants";
 import { Department, Project } from "@/lib/types";
 import { toDateInput } from "@/lib/utils";
 import { ProjectIcon } from "@/components/ui/Icons";
+import { Select } from "@/components/ui/Select";
 
 const emptyForm = { projectName: "", description: "", startDate: "", endDate: "", status: 0, departmentId: 0 };
 
@@ -131,11 +132,11 @@ export default function ManageProjectsPage() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-theme-text">Department</label>
-            <select className="w-full" value={form.departmentId} onChange={(e) => setForm({ ...form, departmentId: Number(e.target.value) })}><option value={0}>Select department</option>{departments.map((d) => <option key={d.departmentId} value={d.departmentId}>{d.departmentName}</option>)}</select>
+            <Select className="w-full" value={form.departmentId} onChange={(val) => setForm({ ...form, departmentId: Number(val) })} options={[{ value: 0, label: "Select department" }, ...departments.map((d) => ({ value: d.departmentId, label: d.departmentName }))]} placeholder="Select department" />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-theme-text">Status</label>
-            <select className="w-full" value={form.status} onChange={(e) => setForm({ ...form, status: Number(e.target.value) })}>{projectStatusOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
+            <Select className="w-full" value={form.status} onChange={(val) => setForm({ ...form, status: Number(val) })} options={projectStatusOptions} placeholder="Select status" />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-theme-text">Start Date</label>

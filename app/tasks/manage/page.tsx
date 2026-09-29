@@ -11,6 +11,7 @@ import { taskPriorityOptions, taskStatusOptions } from "@/lib/constants";
 import { Project, Tag, Task } from "@/lib/types";
 import { toDateInput } from "@/lib/utils";
 import { TaskIcon } from "@/components/ui/Icons";
+import { Select } from "@/components/ui/Select";
 
 const emptyForm = { title: "", description: "", status: 0, priority: 1, dueDate: "", projectId: 0, tagIds: [] as number[] };
 
@@ -145,15 +146,15 @@ export default function ManageTasksPage() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-theme-text">Project</label>
-            <select className="w-full" value={form.projectId} onChange={(e) => setForm({ ...form, projectId: Number(e.target.value) })}><option value={0}>Select project</option>{projects.map((project) => <option key={project.projectId} value={project.projectId}>{project.projectName}</option>)}</select>
+            <Select className="w-full" value={form.projectId} onChange={(val) => setForm({ ...form, projectId: Number(val) })} options={[{ value: 0, label: "Select project" }, ...projects.map((project) => ({ value: project.projectId, label: project.projectName }))]} placeholder="Select project" />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-theme-text">Status</label>
-            <select className="w-full" value={form.status} onChange={(e) => setForm({ ...form, status: Number(e.target.value) })}>{taskStatusOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
+            <Select className="w-full" value={form.status} onChange={(val) => setForm({ ...form, status: Number(val) })} options={taskStatusOptions} placeholder="Select status" />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-theme-text">Priority</label>
-            <select className="w-full" value={form.priority} onChange={(e) => setForm({ ...form, priority: Number(e.target.value) })}>{taskPriorityOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
+            <Select className="w-full" value={form.priority} onChange={(val) => setForm({ ...form, priority: Number(val) })} options={taskPriorityOptions} placeholder="Select priority" />
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-theme-text">Due Date (Optional)</label>

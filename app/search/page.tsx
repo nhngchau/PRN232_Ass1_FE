@@ -7,6 +7,7 @@ import { api, ApiClientError } from "@/lib/api";
 import { taskPriorityOptions, taskStatusOptions } from "@/lib/constants";
 import { Project, Tag, Task } from "@/lib/types";
 import { SearchIcon } from "@/components/ui/Icons";
+import { Select } from "@/components/ui/Select";
 
 export default function SearchPage() {
   const [title, setTitle] = useState("");
@@ -64,38 +65,34 @@ export default function SearchPage() {
       
       <section className="grid gap-4 rounded-2xl border border-theme-border bg-surface p-6 shadow-sm md:grid-cols-5">
         <input className="w-full" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Task title" />
-        <select className="w-full" value={status} onChange={(event) => setStatus(event.target.value)}>
-          <option value="">Any status</option>
-          {taskStatusOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <select className="w-full" value={priority} onChange={(event) => setPriority(event.target.value)}>
-          <option value="">Any priority</option>
-          {taskPriorityOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <select className="w-full" value={projectId} onChange={(event) => setProjectId(event.target.value)}>
-          <option value="">Any project</option>
-          {projects.map((project) => (
-            <option key={project.projectId} value={project.projectId}>
-              {project.projectName}
-            </option>
-          ))}
-        </select>
-        <select className="w-full" value={tagId} onChange={(event) => setTagId(event.target.value)}>
-          <option value="">Any tag</option>
-          {tags.map((tag) => (
-            <option key={tag.tagId} value={tag.tagId}>
-              {tag.tagName}
-            </option>
-          ))}
-        </select>
+        <Select
+          className="w-full"
+          value={status}
+          onChange={(val) => setStatus(val as string)}
+          options={[{ value: "", label: "Any status" }, ...taskStatusOptions]}
+          placeholder="Any status"
+        />
+        <Select
+          className="w-full"
+          value={priority}
+          onChange={(val) => setPriority(val as string)}
+          options={[{ value: "", label: "Any priority" }, ...taskPriorityOptions]}
+          placeholder="Any priority"
+        />
+        <Select
+          className="w-full"
+          value={projectId}
+          onChange={(val) => setProjectId(val as string)}
+          options={[{ value: "", label: "Any project" }, ...projects.map(p => ({ value: p.projectId.toString(), label: p.projectName }))]}
+          placeholder="Any project"
+        />
+        <Select
+          className="w-full"
+          value={tagId}
+          onChange={(val) => setTagId(val as string)}
+          options={[{ value: "", label: "Any tag" }, ...tags.map(t => ({ value: t.tagId.toString(), label: t.tagName }))]}
+          placeholder="Any tag"
+        />
       </section>
       {error && <ErrorState message={error} />}
       {loading ? <LoadingState /> : tasks.length === 0 ? <EmptyState label="No tasks matched your filters." /> : <div className="space-y-4">{tasks.map((task) => <TaskRow key={task.taskId} task={task} />)}</div>}
