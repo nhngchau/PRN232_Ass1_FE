@@ -48,9 +48,7 @@ export function Shell({ children }: { children: ReactNode }) {
       {/* Mobile Header */}
       <header className="flex h-16 shrink-0 items-center justify-between border-b border-theme-border bg-surface px-4 lg:hidden">
         <Link href="/" className="flex items-center gap-2 text-xl font-bold tracking-tight text-theme-text">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-white">
-            <TaskIcon className="h-5 w-5" />
-          </div>
+          <img src="/tasktrack-logo.png" alt="TaskTrack Logo" className="h-8 w-8 object-contain" />
           TaskTrack
         </Link>
         <button
@@ -69,9 +67,7 @@ export function Shell({ children }: { children: ReactNode }) {
       >
         <div className="hidden h-16 items-center px-6 lg:flex">
           <Link href="/" className="flex items-center gap-3 text-xl font-bold tracking-tight text-theme-text">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-white shadow-sm shadow-primary/20">
-              <TaskIcon className="h-5 w-5" />
-            </div>
+            <img src="/tasktrack-logo.png" alt="TaskTrack Logo" className="h-10 w-10 object-contain" />
             TaskTrack
           </Link>
         </div>
