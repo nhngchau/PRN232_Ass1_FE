@@ -30,6 +30,9 @@ export default function ManageTasksPage() {
 
   const [deleting, setDeleting] = useState<Task | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string | number>("All");
+
+  const filteredItems = items.filter((task) => statusFilter === "All" || task.status === Number(statusFilter));
 
   const load = () => {
     setLoading(true);
@@ -117,10 +120,20 @@ export default function ManageTasksPage() {
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-theme-text">Manage Tasks</h1>
         </div>
-        <Button onClick={() => begin()}>Create Task</Button>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="w-full sm:w-40 shrink-0">
+            <Select 
+              value={statusFilter} 
+              onChange={(val) => setStatusFilter(val)} 
+              options={[{ value: "All", label: "All" }, ...taskStatusOptions]} 
+              placeholder="Filter by Status" 
+            />
+          </div>
+          <Button onClick={() => begin()}>Create Task</Button>
+        </div>
       </div>
 
-      {loading ? <LoadingState /> : items.length === 0 ? <EmptyState label="No active tasks found." /> : (
+      {loading ? <LoadingState /> : filteredItems.length === 0 ? <EmptyState label="No tasks found." /> : (
         <div className="overflow-x-auto rounded-2xl border border-theme-border bg-surface shadow-sm">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-theme-border bg-slate-50/80 text-xs uppercase tracking-wider text-theme-muted">
@@ -133,7 +146,7 @@ export default function ManageTasksPage() {
                 <th className="p-4 font-semibold text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>{items.map((task) => (
+            <tbody>{filteredItems.map((task) => (
               <tr key={task.taskId} className="border-b border-theme-border last:border-0 hover:bg-slate-50/50 transition-colors">
                 <td className="p-4 font-bold text-theme-text">{task.title}</td>
                 <td className="p-4 text-theme-muted">{task.projectName}</td>
