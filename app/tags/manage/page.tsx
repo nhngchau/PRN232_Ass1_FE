@@ -4,8 +4,8 @@ import { FormEvent, useEffect, useState } from "react";
 import { Button, DangerButton } from "@/components/ui/Buttons";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { EmptyState, ErrorState, LoadingState } from "@/components/ui/States";
-import { Toast, ToastMessage } from "@/components/ui/Toast";
+import { EmptyState, LoadingState } from "@/components/ui/States";
+import { useToast } from "@/components/ui/Toast";
 import { api, ApiClientError } from "@/lib/api";
 import { Tag } from "@/lib/types";
 import { TagIcon } from "@/components/ui/Icons";
@@ -19,15 +19,17 @@ export default function ManageTagsPage() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [toast, setToast] = useState<ToastMessage | null>(null);
+  const toast = useToast();
 
   const [deleting, setDeleting] = useState<Tag | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const load = () => {
     setLoading(true);
-    api.get<Tag[]>("/api/tags").then(setItems).catch((err: ApiClientError) => setError(err.message)).finally(() => setLoading(false));
+    api.get<Tag[]>("/api/tags")
+      .then(setItems)
+      .catch((err: ApiClientError) => toast("error", err.message))
+      .finally(() => setLoading(false));
   };
 
   useEffect(load, []);
@@ -41,18 +43,18 @@ export default function ManageTagsPage() {
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!form.tagName.trim()) {
-      setToast({ type: "error", text: "Tag name is required." });
+      toast("warning", "Tag name is required.");
       return;
     }
     setSaving(true);
     try {
       if (editing) await api.put(`/api/tags/${editing.tagId}`, form);
       else await api.post("/api/tags", form);
-      setToast({ type: "success", text: "Tag saved." });
+      toast("success", "Tag saved successfully.");
       setOpen(false);
       load();
     } catch (err) {
-      setToast({ type: "error", text: err instanceof ApiClientError ? err.message : "Save failed." });
+      toast("error", err instanceof ApiClientError ? err.message : "Save failed.");
     } finally {
       setSaving(false);
     }
@@ -63,10 +65,10 @@ export default function ManageTagsPage() {
     setIsDeleting(true);
     try {
       await api.delete(`/api/tags/${deleting.tagId}`);
-      setToast({ type: "success", text: "Tag deleted." });
+      toast("success", "Tag deleted successfully.");
       load();
     } catch (err) {
-      setToast({ type: "error", text: err instanceof ApiClientError ? err.message : "Delete failed." });
+      toast("error", err instanceof ApiClientError ? err.message : "Delete failed.");
     } finally {
       setIsDeleting(false);
       setDeleting(null);
@@ -84,8 +86,7 @@ export default function ManageTagsPage() {
         </div>
         <Button onClick={() => begin()}>Create Tag</Button>
       </div>
-      <Toast toast={toast} />
-      {error && <ErrorState message={error} />}
+
       {loading ? <LoadingState /> : items.length === 0 ? <EmptyState label="No tags found." /> : (
         <div className="overflow-x-auto rounded-2xl border border-theme-border bg-surface shadow-sm">
           <table className="w-full text-left text-sm">

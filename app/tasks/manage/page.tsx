@@ -5,8 +5,8 @@ import { PriorityBadge, TagPill, TaskStatusBadge } from "@/components/ui/Badge";
 import { Button, DangerButton } from "@/components/ui/Buttons";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { EmptyState, ErrorState, LoadingState } from "@/components/ui/States";
-import { Toast, ToastMessage } from "@/components/ui/Toast";
+import { EmptyState, LoadingState } from "@/components/ui/States";
+import { useToast } from "@/components/ui/Toast";
 import { api, ApiClientError } from "@/lib/api";
 import { taskPriorityOptions, taskStatusOptions } from "@/lib/constants";
 import { Project, Tag, Task } from "@/lib/types";
@@ -25,8 +25,7 @@ export default function ManageTasksPage() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [toast, setToast] = useState<ToastMessage | null>(null);
+  const toast = useToast();
 
   const [deleting, setDeleting] = useState<Task | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -39,7 +38,7 @@ export default function ManageTasksPage() {
         setProjects(projectData);
         setTags(tagData);
       })
-      .catch((err: ApiClientError) => setError(err.message))
+      .catch((err: ApiClientError) => toast("error", err.message))
       .finally(() => setLoading(false));
   };
 
@@ -69,7 +68,7 @@ export default function ManageTasksPage() {
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!form.title.trim() || !form.projectId) {
-      setToast({ type: "error", text: "Title and project are required." });
+      toast("warning", "Title and project are required.");
       return;
     }
     setSaving(true);
@@ -77,11 +76,11 @@ export default function ManageTasksPage() {
     try {
       if (editing) await api.put(`/api/tasks/${editing.taskId}`, payload);
       else await api.post("/api/tasks", payload);
-      setToast({ type: "success", text: "Task saved." });
+      toast("success", "Task saved successfully.");
       setOpen(false);
       load();
     } catch (err) {
-      setToast({ type: "error", text: err instanceof ApiClientError ? err.message : "Save failed." });
+      toast("error", err instanceof ApiClientError ? err.message : "Save failed.");
     } finally {
       setSaving(false);
     }
@@ -92,10 +91,10 @@ export default function ManageTasksPage() {
     setIsDeleting(true);
     try {
       await api.delete(`/api/tasks/${deleting.taskId}`);
-      setToast({ type: "success", text: "Task soft deleted." });
+      toast("success", "Task deleted successfully.");
       load();
     } catch (err) {
-      setToast({ type: "error", text: err instanceof ApiClientError ? err.message : "Delete failed." });
+      toast("error", err instanceof ApiClientError ? err.message : "Delete failed.");
     } finally {
       setIsDeleting(false);
       setDeleting(null);
@@ -113,8 +112,7 @@ export default function ManageTasksPage() {
         </div>
         <Button onClick={() => begin()}>Create Task</Button>
       </div>
-      <Toast toast={toast} />
-      {error && <ErrorState message={error} />}
+
       {loading ? <LoadingState /> : items.length === 0 ? <EmptyState label="No active tasks found." /> : (
         <div className="overflow-x-auto rounded-2xl border border-theme-border bg-surface shadow-sm">
           <table className="w-full text-left text-sm">

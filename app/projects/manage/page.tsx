@@ -5,8 +5,8 @@ import { ProjectStatusBadge } from "@/components/ui/Badge";
 import { Button, DangerButton } from "@/components/ui/Buttons";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { EmptyState, ErrorState, LoadingState } from "@/components/ui/States";
-import { Toast, ToastMessage } from "@/components/ui/Toast";
+import { EmptyState, LoadingState } from "@/components/ui/States";
+import { useToast } from "@/components/ui/Toast";
 import { api, ApiClientError } from "@/lib/api";
 import { projectStatusOptions } from "@/lib/constants";
 import { Department, Project } from "@/lib/types";
@@ -24,8 +24,7 @@ export default function ManageProjectsPage() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [toast, setToast] = useState<ToastMessage | null>(null);
+  const toast = useToast();
 
   const [deleting, setDeleting] = useState<Project | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -37,7 +36,7 @@ export default function ManageProjectsPage() {
         setItems(projectData);
         setDepartments(departmentData);
       })
-      .catch((err: ApiClientError) => setError(err.message))
+      .catch((err: ApiClientError) => toast("error", err.message))
       .finally(() => setLoading(false));
   };
 
@@ -59,7 +58,7 @@ export default function ManageProjectsPage() {
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!form.projectName.trim() || !form.startDate || !form.departmentId) {
-      setToast({ type: "error", text: "Project name, start date, and department are required." });
+      toast("warning", "Project name, start date, and department are required.");
       return;
     }
     setSaving(true);
@@ -67,11 +66,11 @@ export default function ManageProjectsPage() {
     try {
       if (editing) await api.put(`/api/projects/${editing.projectId}`, payload);
       else await api.post("/api/projects", payload);
-      setToast({ type: "success", text: "Project saved." });
+      toast("success", "Project saved successfully.");
       setOpen(false);
       load();
     } catch (err) {
-      setToast({ type: "error", text: err instanceof ApiClientError ? err.message : "Save failed." });
+      toast("error", err instanceof ApiClientError ? err.message : "Save failed.");
     } finally {
       setSaving(false);
     }
@@ -82,10 +81,10 @@ export default function ManageProjectsPage() {
     setIsDeleting(true);
     try {
       await api.delete(`/api/projects/${deleting.projectId}`);
-      setToast({ type: "success", text: "Project deleted." });
+      toast("success", "Project deleted successfully.");
       load();
     } catch (err) {
-      setToast({ type: "error", text: err instanceof ApiClientError ? err.message : "Delete failed." });
+      toast("error", err instanceof ApiClientError ? err.message : "Delete failed.");
     } finally {
       setIsDeleting(false);
       setDeleting(null);
@@ -103,8 +102,7 @@ export default function ManageProjectsPage() {
         </div>
         <Button onClick={() => begin()}>Create Project</Button>
       </div>
-      <Toast toast={toast} />
-      {error && <ErrorState message={error} />}
+
       {loading ? <LoadingState /> : items.length === 0 ? <EmptyState label="No projects found." /> : (
         <div className="overflow-x-auto rounded-2xl border border-theme-border bg-surface shadow-sm">
           <table className="w-full text-left text-sm">

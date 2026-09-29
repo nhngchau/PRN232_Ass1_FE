@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Shell } from "@/components/layout/Shell";
+import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -14,7 +15,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased`}>
-        <Shell>{children}</Shell>
+        <ToastProvider>
+          <Shell>{children}</Shell>
+        </ToastProvider>
       </body>
     </html>
   );
