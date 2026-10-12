@@ -6,19 +6,19 @@ import { useEffect } from "react";
 import { PageLoader } from "@/components/ui/States";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, account } = useAuth();
+  const { isAuthenticated, isManualLogoutInProgress } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     // If we have definitively loaded auth and there is no token, redirect.
     // AuthProvider initializes and sets token/account. 
     // If not authenticated, redirect.
-    if (!isAuthenticated) {
+    if (!isAuthenticated && !isManualLogoutInProgress) {
       router.push("/login");
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isManualLogoutInProgress, router]);
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || isManualLogoutInProgress) {
     return <PageLoader />;
   }
 

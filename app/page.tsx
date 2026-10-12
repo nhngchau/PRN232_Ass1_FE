@@ -18,13 +18,13 @@ export default async function HomePage() {
       <section className="rounded-xl border border-theme-border bg-white p-6 sm:p-8 shadow-xs">
         <div className="max-w-2xl">
           <span className="inline-flex items-center gap-1.5 rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary uppercase tracking-wider">
-            TaskTrack Dashboard
+            Task & Team Management
           </span>
           <h1 className="mt-3 text-2xl font-bold tracking-tight text-theme-text sm:text-3xl lg:text-4xl">
             Welcome to TaskTrack
           </h1>
           <p className="mt-2 text-sm sm:text-base text-theme-muted leading-relaxed">
-            Manage departments, projects, tasks, and tags seamlessly in a unified modern environment.
+            Manage and explore departments, projects, tasks, and tags seamlessly in a unified modern environment.
           </p>
           <HomeHeroActions />
         </div>

@@ -13,8 +13,9 @@ import {
   UsersIcon,
   ChevronRightIcon
 } from "@/components/ui/Icons";
-import { PageLoader } from "@/components/ui/States";
+import { ErrorState, PageLoader } from "@/components/ui/States";
 import { RoleBadge } from "@/components/ui/RoleBadge";
+import { useToast } from "@/components/ui/Toast";
 
 export default function AdminDashboard() {
   const { account, isAdmin } = useAuth();
@@ -25,15 +26,18 @@ export default function AdminDashboard() {
     tags: 0
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const toast = useToast();
 
   useEffect(() => {
     async function fetchStats() {
       try {
+        setError("");
         const [depts, projs, tasks, tags] = await Promise.all([
-          api.get<Department[]>("/departments").catch(() => []),
-          api.get<Project[]>("/projects").catch(() => []),
-          api.get<Task[]>("/tasks").catch(() => []),
-          api.get<Tag[]>("/tags").catch(() => [])
+          api.get<Department[]>("/departments"),
+          api.get<Project[]>("/projects"),
+          api.get<Task[]>("/tasks"),
+          api.get<Tag[]>("/tags")
         ]);
         setStats({
           departments: depts?.length || 0,
@@ -42,7 +46,9 @@ export default function AdminDashboard() {
           tags: tags?.length || 0
         });
       } catch (err) {
-        console.error("Failed to fetch stats", err);
+        const message = err instanceof Error ? err.message : "Failed to load dashboard statistics.";
+        setError(message);
+        toast("error", message);
       } finally {
         setLoading(false);
       }
@@ -142,6 +148,7 @@ export default function AdminDashboard() {
         <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
           Overview
         </h2>
+        {error && <div className="mb-4"><ErrorState message={error} /></div>}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {statCards.map((card) => {
             const Icon = card.icon;

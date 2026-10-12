@@ -32,7 +32,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
-  const { isAuthenticated, isAdmin, account, logout } = useAuth();
+  const { isAuthenticated, isAdmin, account, logout, isManualLogoutInProgress } = useAuth();
 
   useEffect(() => {
     const stored = localStorage.getItem("sidebarCollapsed");
@@ -236,11 +236,15 @@ export function Shell({ children }: { children: ReactNode }) {
                     setIsMobileMenuOpen(false);
                     logout();
                   }}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600 focus:outline-none"
-                  title="Sign out"
+                  disabled={isManualLogoutInProgress}
+                  className={`flex h-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600 focus:outline-none disabled:cursor-not-allowed disabled:opacity-70 ${
+                    isManualLogoutInProgress ? "w-auto gap-1.5 px-2 text-xs text-rose-600" : "w-8"
+                  }`}
+                  title={isManualLogoutInProgress ? "Signing out" : "Sign out"}
                   aria-label="Sign out"
                 >
                   <LogOutIcon className="h-4 w-4 shrink-0" />
+                  {isManualLogoutInProgress && <span>Signing out</span>}
                 </button>
               </div>
             ) : (
@@ -254,11 +258,16 @@ export function Shell({ children }: { children: ReactNode }) {
                 </Link>
                 <button
                   onClick={() => logout()}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600 focus:outline-none"
-                  title="Sign out"
+                  disabled={isManualLogoutInProgress}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600 focus:outline-none disabled:cursor-not-allowed disabled:opacity-70"
+                  title={isManualLogoutInProgress ? "Signing out" : "Sign out"}
                   aria-label="Sign out"
                 >
-                  <LogOutIcon className="h-4 w-4 shrink-0" />
+                  {isManualLogoutInProgress ? (
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-rose-500 border-r-transparent" />
+                  ) : (
+                    <LogOutIcon className="h-4 w-4 shrink-0" />
+                  )}
                 </button>
               </div>
             )}

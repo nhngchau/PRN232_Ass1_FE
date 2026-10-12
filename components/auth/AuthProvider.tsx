@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Account } from "@/lib/auth/types";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
 import { clearAuthSession, revokeStoredRefreshToken, saveAccountSession, saveAuthSession } from "@/lib/api";
 import { LoginResponse } from "@/lib/auth/types";
@@ -12,6 +12,7 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isManualLogoutInProgress: boolean;
   login: (response: LoginResponse) => void;
   updateAccount: (account: Account) => void;
   logout: (redirectTo?: string) => void;
@@ -23,7 +24,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [account, setAccount] = useState<Account | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isManualLogoutInProgress, setIsManualLogoutInProgress] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const addToast = useToast();
 
   useEffect(() => {
@@ -51,12 +54,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async (redirectTo: string = "/") => {
+    const isManualLogout = redirectTo === "/";
+    setIsManualLogoutInProgress(isManualLogout);
     await revokeStoredRefreshToken();
     clearAuthSession();
     setToken(null);
     setAccount(null);
     router.push(redirectTo);
   };
+
+  useEffect(() => {
+    if (isManualLogoutInProgress && pathname === "/") {
+      setIsManualLogoutInProgress(false);
+    }
+  }, [isManualLogoutInProgress, pathname]);
 
   useEffect(() => {
     const handle401 = () => {
@@ -97,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         token,
         isAuthenticated: !!token,
         isAdmin,
+        isManualLogoutInProgress,
         login,
         updateAccount,
         logout,

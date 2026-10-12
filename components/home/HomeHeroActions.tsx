@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button, SecondaryButton } from "@/components/ui/Buttons";
-import { LayoutDashboardIcon, UserIcon, ChevronRightIcon } from "@/components/ui/Icons";
+import { LayoutDashboardIcon, UserIcon, ChevronRightIcon, DepartmentIcon, SearchIcon } from "@/components/ui/Icons";
 
 export function HomeHeroActions() {
   const { isAuthenticated, account } = useAuth();
@@ -14,9 +14,21 @@ export function HomeHeroActions() {
         <Link href="/admin">
           <Button className="!h-10 !px-4">
             <LayoutDashboardIcon className="h-4 w-4 shrink-0" />
-            <span>Go to Workspace</span>
+            <span>Go to Dashboard</span>
             <ChevronRightIcon className="h-3.5 w-3.5 shrink-0" />
           </Button>
+        </Link>
+        <Link href="/departments">
+          <SecondaryButton className="!h-10 !px-4">
+            <DepartmentIcon className="h-4 w-4 shrink-0" />
+            <span>Departments</span>
+          </SecondaryButton>
+        </Link>
+        <Link href="/search">
+          <SecondaryButton className="!h-10 !px-4">
+            <SearchIcon className="h-4 w-4 shrink-0" />
+            <span>Search</span>
+          </SecondaryButton>
         </Link>
         <Link href="/profile">
           <SecondaryButton className="!h-10 !px-4">
@@ -38,7 +50,19 @@ export function HomeHeroActions() {
       </Link>
       <Link href="/register">
         <SecondaryButton className="!h-10 !px-4">
-          <span>Create an account</span>
+          <span>Register</span>
+        </SecondaryButton>
+      </Link>
+      <Link href="/departments">
+        <SecondaryButton className="!h-10 !px-4">
+          <DepartmentIcon className="h-4 w-4 shrink-0" />
+          <span>Departments</span>
+        </SecondaryButton>
+      </Link>
+      <Link href="/search">
+        <SecondaryButton className="!h-10 !px-4">
+          <SearchIcon className="h-4 w-4 shrink-0" />
+          <span>Search</span>
         </SecondaryButton>
       </Link>
     </div>
