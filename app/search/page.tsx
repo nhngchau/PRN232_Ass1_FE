@@ -8,6 +8,7 @@ import { taskPriorityOptions, taskStatusOptions } from "@/lib/constants";
 import { Project, Tag, Task } from "@/lib/types";
 import { SearchIcon } from "@/components/ui/Icons";
 import { Select } from "@/components/ui/Select";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 export default function SearchPage() {
   const [title, setTitle] = useState("");
@@ -55,47 +56,65 @@ export default function SearchPage() {
   }, [query]);
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
-          <SearchIcon className="h-5 w-5" />
-        </div>
-        <h1 className="text-2xl font-bold tracking-tight text-theme-text">Search Tasks</h1>
-      </div>
+    <div className="space-y-6 max-w-6xl">
+      <PageHeader
+        title="Search Tasks"
+        description="Search and filter tasks across projects, priorities, statuses, and tags."
+        icon={SearchIcon}
+      />
       
-      <section className="grid gap-4 rounded-2xl border border-theme-border bg-surface p-6 shadow-sm md:grid-cols-5">
-        <input className="w-full" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Task title" />
-        <Select
-          className="w-full"
-          value={status}
-          onChange={(val) => setStatus(val as string)}
-          options={[{ value: "", label: "Any status" }, ...taskStatusOptions]}
-          placeholder="Any status"
-        />
-        <Select
-          className="w-full"
-          value={priority}
-          onChange={(val) => setPriority(val as string)}
-          options={[{ value: "", label: "Any priority" }, ...taskPriorityOptions]}
-          placeholder="Any priority"
-        />
-        <Select
-          className="w-full"
-          value={projectId}
-          onChange={(val) => setProjectId(val as string)}
-          options={[{ value: "", label: "Any project" }, ...projects.map(p => ({ value: p.projectId.toString(), label: p.projectName }))]}
-          placeholder="Any project"
-        />
-        <Select
-          className="w-full"
-          value={tagId}
-          onChange={(val) => setTagId(val as string)}
-          options={[{ value: "", label: "Any tag" }, ...tags.map(t => ({ value: t.tagId.toString(), label: t.tagName }))]}
-          placeholder="Any tag"
-        />
+      <section className="rounded-xl border border-theme-border bg-white p-4 sm:p-5 shadow-xs">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <input
+            className="w-full"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder="Search by title..."
+          />
+          <Select
+            className="w-full"
+            value={status}
+            onChange={(val) => setStatus(val as string)}
+            options={[{ value: "", label: "All Statuses" }, ...taskStatusOptions]}
+            placeholder="All Statuses"
+          />
+          <Select
+            className="w-full"
+            value={priority}
+            onChange={(val) => setPriority(val as string)}
+            options={[{ value: "", label: "All Priorities" }, ...taskPriorityOptions]}
+            placeholder="All Priorities"
+          />
+          <Select
+            className="w-full"
+            value={projectId}
+            onChange={(val) => setProjectId(val as string)}
+            options={[{ value: "", label: "All Projects" }, ...projects.map(p => ({ value: p.projectId.toString(), label: p.projectName }))]}
+            placeholder="All Projects"
+          />
+          <Select
+            className="w-full"
+            value={tagId}
+            onChange={(val) => setTagId(val as string)}
+            options={[{ value: "", label: "All Tags" }, ...tags.map(t => ({ value: t.tagId.toString(), label: t.tagName }))]}
+            placeholder="All Tags"
+          />
+        </div>
       </section>
+
       {error && <ErrorState message={error} />}
-      {loading ? <LoadingState /> : tasks.length === 0 ? <EmptyState label="No tasks matched your filters." /> : <div className="space-y-4">{tasks.map((task) => <TaskRow key={task.taskId} task={task} />)}</div>}
+
+      {loading ? (
+        <LoadingState label="Searching tasks..." />
+      ) : tasks.length === 0 ? (
+        <EmptyState label="No tasks matched your filter criteria." />
+      ) : (
+        <div className="space-y-3">
+          {tasks.map((task) => (
+            <TaskRow key={task.taskId} task={task} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -8,12 +8,14 @@ const styles = [
 ];
 
 export function Badge({ children, tone = 0 }: { children: React.ReactNode; tone?: number }) {
-  return <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${styles[tone] ?? styles[0]}`}>{children}</span>;
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${styles[tone] ?? styles[0]}`}>
+      {children}
+    </span>
+  );
 }
 
 export function ProjectStatusBadge({ value }: { value: number }) {
-  // Map project status to visual tones:
-  // Assuming 0: Planning (Neutral), 1: Active (Info), 2: Completed (Success), 3: On Hold (Warning)
   return <Badge tone={value}>{projectStatuses[value] ?? "Unknown"}</Badge>;
 }
 
@@ -28,9 +30,11 @@ export function PriorityBadge({ value }: { value: number }) {
 
 export function TagPill({ name, color }: { name: string; color?: string | null }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-theme-border bg-surface px-2.5 py-1 text-xs font-medium text-theme-text shadow-sm">
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-theme-border bg-white px-2.5 py-0.5 text-xs font-medium text-theme-text shadow-xs">
       <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color ?? "#94a3b8" }} />
       {name}
     </span>
   );
 }
+
+export { RoleBadge } from "./RoleBadge";

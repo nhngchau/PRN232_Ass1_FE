@@ -2,19 +2,12 @@ name: Frontend CI
 
 on:
   push:
-    branches:
-      - main
   pull_request:
-    branches:
-      - main
 
 jobs:
   build:
     name: Lint and Build Next.js
     runs-on: ubuntu-latest
-
-    env:
-      NEXT_PUBLIC_API_URL: https://tasktrack-api-mi6g.onrender.com
 
     steps:
       - name: Checkout repository

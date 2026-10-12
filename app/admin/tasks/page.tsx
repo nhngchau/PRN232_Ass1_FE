@@ -1,0 +1,313 @@
+"use client";
+
+import { FormEvent, useEffect, useState } from "react";
+import { PriorityBadge, TagPill, TaskStatusBadge } from "@/components/ui/Badge";
+import { Button, SecondaryButton, DangerButton } from "@/components/ui/Buttons";
+import { Modal } from "@/components/ui/Modal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { EmptyState, LoadingState } from "@/components/ui/States";
+import { useToast } from "@/components/ui/Toast";
+import { api, ApiClientError } from "@/lib/api";
+import { taskPriorityOptions, taskStatusOptions } from "@/lib/constants";
+import { Project, Tag, Task } from "@/lib/types";
+import { toDateInput } from "@/lib/utils";
+import { TaskIcon, PlusIcon } from "@/components/ui/Icons";
+import { Select } from "@/components/ui/Select";
+import { PageHeader } from "@/components/ui/PageHeader";
+
+const emptyForm = { title: "", description: "", status: 0, priority: 1, dueDate: "", projectId: 0, tagIds: [] as number[] };
+
+export default function ManageTasksPage() {
+  const [items, setItems] = useState<Task[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [form, setForm] = useState(emptyForm);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [editing, setEditing] = useState<Task | null>(null);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const toast = useToast();
+
+  const [deleting, setDeleting] = useState<Task | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string | number>("All");
+
+  const filteredItems = items.filter((task) => statusFilter === "All" || task.status === Number(statusFilter));
+
+  const load = () => {
+    setLoading(true);
+    Promise.all([api.get<Task[]>("/api/tasks"), api.get<Project[]>("/api/projects"), api.get<Tag[]>("/api/tags")])
+      .then(([taskData, projectData, tagData]) => {
+        setItems(taskData);
+        setProjects(projectData);
+        setTags(tagData);
+      })
+      .catch((err: ApiClientError) => toast("error", err.message))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(load, []);
+
+  const begin = (task?: Task) => {
+    setEditing(task ?? null);
+    setForm(task ? {
+      title: task.title,
+      description: task.description ?? "",
+      status: task.status,
+      priority: task.priority,
+      dueDate: toDateInput(task.dueDate),
+      projectId: task.projectId,
+      tagIds: task.tags.map((tag) => tag.tagId)
+    } : { ...emptyForm, projectId: projects[0]?.projectId ?? 0 });
+    setFormErrors({});
+    setOpen(true);
+  };
+
+  const toggleTag = (tagId: number) => {
+    setForm((current) => ({
+      ...current,
+      tagIds: current.tagIds.includes(tagId) ? current.tagIds.filter((id) => id !== tagId) : [...current.tagIds, tagId]
+    }));
+  };
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    const errors: Record<string, string> = {};
+    if (!form.title.trim()) errors.title = "Task title is required.";
+    if (!form.projectId) errors.projectId = "Project is required.";
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
+    setSaving(true);
+    const payload = { ...form, dueDate: form.dueDate || null };
+    try {
+      if (editing) await api.put(`/api/tasks/${editing.taskId}`, payload);
+      else await api.post("/api/tasks", payload);
+      toast("success", "Task saved successfully.");
+      setOpen(false);
+      load();
+    } catch (err) {
+      toast("error", err instanceof ApiClientError ? err.message : "Save failed.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleting) return;
+    setIsDeleting(true);
+    try {
+      await api.delete(`/api/tasks/${deleting.taskId}`);
+      toast("success", "Task deleted successfully.");
+      load();
+    } catch (err) {
+      toast("error", err instanceof ApiClientError ? err.message : "Delete failed.");
+    } finally {
+      setIsDeleting(false);
+      setDeleting(null);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Tasks"
+        description="Manage work items, assignments, statuses, and tags."
+        icon={TaskIcon}
+      >
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="w-40">
+            <Select 
+              value={statusFilter} 
+              onChange={(val) => setStatusFilter(val)} 
+              options={[{ value: "All", label: "All Statuses" }, ...taskStatusOptions]} 
+              placeholder="Filter by Status" 
+            />
+          </div>
+          <Button onClick={() => begin()}>
+            <PlusIcon className="h-4 w-4" />
+            <span>Create Task</span>
+          </Button>
+        </div>
+      </PageHeader>
+
+      {loading ? (
+        <LoadingState label="Loading tasks..." />
+      ) : filteredItems.length === 0 ? (
+        <EmptyState label="No tasks found matching your filter criteria." />
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-theme-border bg-white shadow-xs">
+          <table className="w-full text-left text-sm">
+            <thead className="border-b border-theme-border bg-slate-50/75 text-xs font-semibold uppercase tracking-wider text-theme-muted">
+              <tr>
+                <th className="px-4 py-3">Title</th>
+                <th className="px-4 py-3">Project</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Priority</th>
+                <th className="px-4 py-3">Tags</th>
+                <th className="px-4 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-theme-border/60">
+              {filteredItems.map((task) => (
+                <tr key={task.taskId} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-4 py-3 font-semibold text-theme-text max-w-xs truncate">{task.title}</td>
+                  <td className="px-4 py-3 text-theme-muted">{task.projectName}</td>
+                  <td className="px-4 py-3">
+                    <TaskStatusBadge value={task.status} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <PriorityBadge value={task.priority} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-1">
+                      {task.tags.map((tag) => (
+                        <TagPill key={tag.tagId} name={tag.tagName} color={tag.color} />
+                      ))}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <div className="flex justify-end gap-2">
+                      <SecondaryButton className="!py-1.5 !px-3 !text-xs" onClick={() => begin(task)}>
+                        Edit
+                      </SecondaryButton>
+                      <DangerButton className="!py-1.5 !px-3 !text-xs" onClick={() => setDeleting(task)}>
+                        Delete
+                      </DangerButton>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <Modal title={editing ? "Edit Task" : "Create Task"} open={open} onClose={() => setOpen(false)}>
+        <form className="grid gap-4 md:grid-cols-2" onSubmit={submit}>
+          <div className="md:col-span-2">
+            <label className="mb-1.5 block text-sm font-medium text-theme-text">Title</label>
+            <input 
+              className={`w-full ${formErrors.title ? "!border-rose-400 focus:!ring-rose-500/20" : ""}`} 
+              value={form.title} 
+              onChange={(e) => {
+                setForm({ ...form, title: e.target.value });
+                if (formErrors.title) setFormErrors({ ...formErrors, title: "" });
+              }} 
+              placeholder="e.g. Implement user authentication" 
+              maxLength={300} 
+            />
+            {formErrors.title && <p className="mt-1 text-xs text-rose-500">{formErrors.title}</p>}
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-theme-text">Project</label>
+            <Select 
+              className={`w-full ${formErrors.projectId ? "!border-rose-400" : ""}`} 
+              value={form.projectId} 
+              onChange={(val) => {
+                setForm({ ...form, projectId: Number(val) });
+                if (formErrors.projectId) setFormErrors({ ...formErrors, projectId: "" });
+              }} 
+              options={[{ value: 0, label: "Select project" }, ...projects.map((project) => ({ value: project.projectId, label: project.projectName }))]} 
+              placeholder="Select project" 
+            />
+            {formErrors.projectId && <p className="mt-1 text-xs text-rose-500">{formErrors.projectId}</p>}
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-theme-text">Status</label>
+            <Select 
+              className="w-full" 
+              value={form.status} 
+              onChange={(val) => setForm({ ...form, status: Number(val) })} 
+              options={taskStatusOptions} 
+              placeholder="Select status" 
+            />
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-theme-text">Priority</label>
+            <Select 
+              className="w-full" 
+              value={form.priority} 
+              onChange={(val) => setForm({ ...form, priority: Number(val) })} 
+              options={taskPriorityOptions} 
+              placeholder="Select priority" 
+            />
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-theme-text">Due Date (Optional)</label>
+            <input 
+              className="w-full" 
+              type="date" 
+              value={form.dueDate} 
+              onChange={(e) => setForm({ ...form, dueDate: e.target.value })} 
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="mb-1.5 block text-sm font-medium text-theme-text">Description</label>
+            <textarea 
+              className="w-full min-h-[90px]" 
+              value={form.description} 
+              onChange={(e) => setForm({ ...form, description: e.target.value })} 
+              placeholder="Describe task details and acceptance criteria" 
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <p className="mb-2 text-sm font-medium text-theme-text">Tags</p>
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <label
+                  key={tag.tagId}
+                  className={`inline-flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-medium transition-colors ${
+                    form.tagIds.includes(tag.tagId)
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-theme-border bg-white text-theme-text hover:border-slate-300"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={form.tagIds.includes(tag.tagId)}
+                    onChange={() => toggleTag(tag.tagId)}
+                    className="rounded text-primary focus:ring-primary h-3.5 w-3.5"
+                  />
+                  <span>{tag.tagName}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="md:col-span-2 flex justify-end gap-2 pt-2 border-t border-theme-border/60">
+            <SecondaryButton type="button" onClick={() => setOpen(false)}>
+              Cancel
+            </SecondaryButton>
+            <Button disabled={saving}>
+              {saving ? "Saving..." : "Save Task"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <ConfirmDialog
+        open={deleting !== null}
+        onClose={() => setDeleting(null)}
+        onConfirm={confirmDelete}
+        isDeleting={isDeleting}
+        title="Delete Task"
+        description={
+          <>
+            Are you sure you want to delete <strong>&quot;{deleting?.title}&quot;</strong>? This task will be removed from active lists.
+          </>
+        }
+      />
+    </div>
+  );
+}

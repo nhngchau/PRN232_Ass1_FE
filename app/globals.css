@@ -7,23 +7,25 @@
     --primary: 62% 0.19 2;
     --primary-hover: 56% 0.19 2;
     --accent: 72.34% 0.1854 1.7849;
-    --primary-soft: 94% 0.045 2;
+    --primary-soft: 96% 0.025 2;
 
-    --background: 98.5% 0.008 350;
+    --background: 98.8% 0.003 260;
     --surface: 100% 0 0;
 
     --text: 22% 0.025 265;
     --text-muted: 48% 0.025 265;
     --border: 90% 0.012 265;
   }
-}
 
-@layer base {
   body {
     background-color: oklch(var(--background));
     color: oklch(var(--text));
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  svg {
+    flex-shrink: 0;
   }
 }
 
@@ -31,11 +33,11 @@
   input,
   select,
   textarea {
-    @apply rounded-xl border border-theme-border bg-surface px-3 py-2 text-sm text-theme-text outline-none transition duration-200 placeholder:text-theme-muted focus:border-accent focus:ring-4 focus:ring-accent/10;
+    @apply rounded-xl border border-theme-border bg-surface px-3.5 py-2.5 text-sm text-theme-text outline-none transition duration-150 placeholder:text-theme-muted/60 focus:border-primary focus:ring-2 focus:ring-primary/15 disabled:bg-slate-50 disabled:text-theme-muted/50;
   }
 
   button {
-    @apply transition-all duration-200 active:scale-[0.98];
+    @apply transition-all duration-150 active:scale-[0.98];
   }
 }
 
@@ -44,26 +46,25 @@
 /* Firefox */
 * {
     scrollbar-width: thin;
-    scrollbar-color: oklch(72.34% 0.1854 1.7849) oklch(97% 0.015 350);
+    scrollbar-color: oklch(78% 0.12 2) oklch(96% 0.004 260);
 }
 
-    /* Chrome, Edge, Safari */
-    *::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-    }
+/* Chrome, Edge, Safari */
+*::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
 
-    *::-webkit-scrollbar-track {
-        background: oklch(97% 0.015 350);
-        border-radius: 999px;
-    }
+*::-webkit-scrollbar-track {
+    background: oklch(96% 0.004 260);
+    border-radius: 999px;
+}
 
-    *::-webkit-scrollbar-thumb {
-        background: oklch(72.34% 0.1854 1.7849);
-        border-radius: 999px;
-        border: 2px solid oklch(97% 0.015 350);
-    }
+*::-webkit-scrollbar-thumb {
+    background: oklch(78% 0.12 2);
+    border-radius: 999px;
+}
 
-        *::-webkit-scrollbar-thumb:hover {
-            background: oklch(64% 0.19 2);
-        }
+*::-webkit-scrollbar-thumb:hover {
+    background: oklch(62% 0.19 2);
+}
