@@ -68,3 +68,23 @@
 *::-webkit-scrollbar-thumb:hover {
     background: oklch(62% 0.19 2);
 }
+
+/* ===== Startup Spinner ===== */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.startup-spinner {
+  border: 2px solid #e2e8f0;
+  border-top-color: oklch(var(--primary)) !important;
+  animation: spin 0.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .startup-spinner {
+    animation: none;
+  }
+}
+

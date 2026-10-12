@@ -12,7 +12,7 @@ import { useToast } from "@/components/ui/Toast";
 import { RoleBadge } from "@/components/ui/RoleBadge";
 
 export default function ProfilePage() {
-  const { isAuthenticated, account, updateAccount } = useAuth();
+  const { isAuthenticated, isInitialized, account, updateAccount } = useAuth();
   const router = useRouter();
   const toast = useToast();
   const [profile, setProfile] = useState<Account | null>(account);
@@ -27,6 +27,7 @@ export default function ProfilePage() {
   const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    if (!isInitialized) return;
     if (!isAuthenticated) {
       router.push("/login");
       return;

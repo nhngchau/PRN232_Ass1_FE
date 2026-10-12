@@ -12,6 +12,7 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isInitialized: boolean;
   isManualLogoutInProgress: boolean;
   login: (response: LoginResponse) => void;
   updateAccount: (account: Account) => void;
@@ -97,10 +98,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAdmin = account?.role === 1;
 
-  if (!isInitialized) {
-    return null; // Or a loading spinner
-  }
-
   return (
     <AuthContext.Provider
       value={{
@@ -108,6 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         token,
         isAuthenticated: !!token,
         isAdmin,
+        isInitialized,
         isManualLogoutInProgress,
         login,
         updateAccount,
