@@ -38,7 +38,8 @@ async function request<T>(path: string, options: RequestInit = {}, retryOnUnauth
     cache: "no-store"
   });
 
-  if (response.status === 401 && typeof window !== "undefined") {
+  // A 401 from login/register means bad credentials, not an expired session, so let the page show the error.
+  if (response.status === 401 && typeof window !== "undefined" && !isAuthMutation(path)) {
     const refreshed = retryOnUnauthorized && shouldAttemptRefresh(path)
       ? await refreshAccessToken()
       : false;
@@ -90,6 +91,30 @@ export function clearAuthSession() {
   localStorage.removeItem(REFRESH_TOKEN_KEY);
   localStorage.removeItem(ACCESS_TOKEN_EXPIRY_KEY);
   localStorage.removeItem(ACCOUNT_KEY);
+}
+
+export function isTokenExpired(token: string) {
+  try {
+    const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const { exp } = JSON.parse(atob(payload)) as { exp?: number };
+    return typeof exp !== "number" || exp * 1000 <= Date.now();
+  } catch {
+    return true;
+  }
+}
+
+export async function ensureValidSession() {
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (token && !isTokenExpired(token)) {
+    return true;
+  }
+
+  try {
+    return await refreshAccessToken();
+  } catch {
+    clearAuthSession();
+    return false;
+  }
 }
 
 export async function revokeStoredRefreshToken() {
