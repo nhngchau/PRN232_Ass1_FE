@@ -32,13 +32,28 @@ export function Shell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   const { isAuthenticated, isAdmin, account, logout, isManualLogoutInProgress } = useAuth();
+
+  // The icon-only layout is a desktop preference; the mobile drawer always shows labels
+  const isCollapsed = isDesktopCollapsed && isDesktop;
 
   useEffect(() => {
     const stored = localStorage.getItem("sidebarCollapsed");
     if (stored) {
       setIsDesktopCollapsed(stored === "true");
     }
+  }, []);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 1024px)");
+    const sync = () => {
+      setIsDesktop(mql.matches);
+      if (mql.matches) setIsMobileMenuOpen(false);
+    };
+    sync();
+    mql.addEventListener("change", sync);
+    return () => mql.removeEventListener("change", sync);
   }, []);
 
   const toggleDesktopSidebar = () => {
@@ -64,9 +79,9 @@ export function Shell({ children }: { children: ReactNode }) {
           key={href}
           href={href}
           onClick={closeMenu}
-          title={isDesktopCollapsed ? label : undefined}
+          title={isCollapsed ? label : undefined}
           className={`group flex items-center h-10 rounded-lg text-sm transition-colors duration-150 ${
-            isDesktopCollapsed ? "justify-center w-10 mx-auto" : "gap-3 px-3 w-full"
+            isCollapsed ? "justify-center w-10 mx-auto" : "gap-3 px-3 w-full"
           } ${
             active
               ? "bg-primary/10 text-primary font-medium"
@@ -74,7 +89,7 @@ export function Shell({ children }: { children: ReactNode }) {
           }`}
         >
           <Icon className={`h-5 w-5 shrink-0 transition-colors ${active ? "text-primary" : "text-slate-500 group-hover:text-slate-700"}`} />
-          {!isDesktopCollapsed && (
+          {!isCollapsed && (
             <span className="truncate">{label}</span>
           )}
         </Link>
@@ -92,7 +107,7 @@ export function Shell({ children }: { children: ReactNode }) {
       title={isManualLogoutInProgress ? "Signing out" : "Sign out"}
       aria-label="Sign out"
       className={`group flex items-center h-10 rounded-lg text-sm transition-colors duration-150 text-slate-700 hover:bg-rose-50 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-70 ${
-        isDesktopCollapsed ? "justify-center w-10 mx-auto" : "gap-3 px-3 w-full"
+        isCollapsed ? "justify-center w-10 mx-auto" : "gap-3 px-3 w-full"
       }`}
     >
       {isManualLogoutInProgress ? (
@@ -100,7 +115,7 @@ export function Shell({ children }: { children: ReactNode }) {
       ) : (
         <LogOutIcon className="h-5 w-5 shrink-0 text-slate-500 transition-colors group-hover:text-rose-600" />
       )}
-      {!isDesktopCollapsed && (
+      {!isCollapsed && (
         <span className="truncate">
           {isManualLogoutInProgress ? "Signing out" : "Logout"}
         </span>
@@ -149,30 +164,30 @@ export function Shell({ children }: { children: ReactNode }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-theme-border bg-white transition-all duration-200 lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-theme-border bg-white transition-all duration-200 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        } ${isDesktopCollapsed ? "lg:w-[68px]" : "lg:w-64"} w-64`}
+        } ${isCollapsed ? "lg:w-[68px]" : "lg:w-64"} w-64`}
       >
         {/* Sidebar Header */}
         <div
           className={`flex h-14 shrink-0 items-center border-b border-theme-border/60 ${
-            isDesktopCollapsed ? "justify-center px-2" : "justify-between px-4"
+            isCollapsed ? "justify-center px-2" : "justify-between px-4"
           }`}
         >
           <Link
             href="/"
             className="flex items-center gap-2.5 overflow-hidden"
-            title={isDesktopCollapsed ? "TaskTrack" : undefined}
+            title={isCollapsed ? "TaskTrack" : undefined}
           >
             <img src="/tasktrack-logo.png" alt="TaskTrack Logo" className="h-7 w-7 shrink-0 object-contain" />
-            {!isDesktopCollapsed && (
+            {!isCollapsed && (
               <span className="text-base font-bold tracking-tight text-slate-900">
                 TaskTrack
               </span>
             )}
           </Link>
 
-          {!isDesktopCollapsed && (
+          {!isCollapsed && (
             <button
               onClick={toggleDesktopSidebar}
               aria-label="Collapse sidebar"
@@ -182,11 +197,11 @@ export function Shell({ children }: { children: ReactNode }) {
             </button>
           )}
 
-          {isDesktopCollapsed && (
+          {isCollapsed && (
             <button
               onClick={toggleDesktopSidebar}
               aria-label="Expand sidebar"
-              className="hidden lg:flex absolute -right-3 top-4 h-6 w-6 items-center justify-center rounded-full border border-theme-border bg-white text-slate-500 shadow-xs transition hover:text-primary hover:border-primary/40 focus:outline-none"
+              className="hidden lg:flex absolute -right-3 top-4 h-6 w-6 items-center justify-center rounded-full border border-theme-border bg-white text-slate-500 shadow-sm transition hover:text-primary hover:border-primary/40 focus:outline-none"
             >
               <ChevronRightIcon className="h-3.5 w-3.5 shrink-0" />
             </button>
@@ -197,7 +212,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-3.5 space-y-5">
           {/* NAVIGATION */}
           <div>
-            {!isDesktopCollapsed && (
+            {!isCollapsed && (
               <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 Navigation
               </p>
@@ -210,7 +225,7 @@ export function Shell({ children }: { children: ReactNode }) {
           {/* MANAGEMENT (when authenticated) */}
           {isAuthenticated && (
             <div>
-              {!isDesktopCollapsed && (
+              {!isCollapsed && (
                 <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                   Management
                 </p>
@@ -224,7 +239,7 @@ export function Shell({ children }: { children: ReactNode }) {
 
         {/* Account Section */}
         <div className="shrink-0 border-t border-theme-border/70 bg-slate-50/50 px-3 py-3.5">
-          {!isDesktopCollapsed && (
+          {!isCollapsed && (
             <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
               Account
             </p>
@@ -234,7 +249,7 @@ export function Shell({ children }: { children: ReactNode }) {
             {isAuthenticated && renderLogoutButton()}
           </nav>
 
-          {isAuthenticated && account && !isDesktopCollapsed && (
+          {isAuthenticated && account && !isCollapsed && (
             <div className="mt-3 border-t border-theme-border/60 px-3 pt-3">
               <p className="truncate text-xs font-semibold text-slate-900 leading-tight">
                 {account.fullName}
@@ -245,7 +260,7 @@ export function Shell({ children }: { children: ReactNode }) {
             </div>
           )}
 
-          {isAuthenticated && account && isDesktopCollapsed && (
+          {isAuthenticated && account && isCollapsed && (
             <div className="mt-3 flex justify-center border-t border-theme-border/60 pt-3">
               <div
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs"
@@ -261,7 +276,7 @@ export function Shell({ children }: { children: ReactNode }) {
       {/* Mobile Backdrop */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 z-30 bg-slate-900/30 backdrop-blur-xs lg:hidden"
+          className="fixed inset-0 z-30 bg-slate-900/30 backdrop-blur-sm lg:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
