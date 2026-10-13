@@ -82,6 +82,32 @@ export function Shell({ children }: { children: ReactNode }) {
     });
   };
 
+  const renderLogoutButton = () => (
+    <button
+      onClick={() => {
+        setIsMobileMenuOpen(false);
+        logout();
+      }}
+      disabled={isManualLogoutInProgress}
+      title={isManualLogoutInProgress ? "Signing out" : "Sign out"}
+      aria-label="Sign out"
+      className={`group flex items-center h-10 rounded-lg text-sm transition-colors duration-150 text-slate-700 hover:bg-rose-50 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-70 ${
+        isDesktopCollapsed ? "justify-center w-10 mx-auto" : "gap-3 px-3 w-full"
+      }`}
+    >
+      {isManualLogoutInProgress ? (
+        <span className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-rose-500 border-r-transparent" />
+      ) : (
+        <LogOutIcon className="h-5 w-5 shrink-0 text-slate-500 transition-colors group-hover:text-rose-600" />
+      )}
+      {!isDesktopCollapsed && (
+        <span className="truncate">
+          {isManualLogoutInProgress ? "Signing out" : "Logout"}
+        </span>
+      )}
+    </button>
+  );
+
   const isAuthPage = pathname === "/login" || pathname === "/register";
 
   if (isAuthPage) {
@@ -168,7 +194,7 @@ export function Shell({ children }: { children: ReactNode }) {
         </div>
 
         {/* Navigation Sections */}
-        <div className="flex flex-1 flex-col overflow-y-auto px-3 py-3.5 space-y-5">
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-3.5 space-y-5">
           {/* NAVIGATION */}
           <div>
             {!isDesktopCollapsed && (
@@ -194,85 +220,42 @@ export function Shell({ children }: { children: ReactNode }) {
               </nav>
             </div>
           )}
-
-          {/* ACCOUNT */}
-          <div>
-            {!isDesktopCollapsed && (
-              <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                Account
-              </p>
-            )}
-            <nav className="space-y-0.5">
-              {renderNavLinks(accountLinks, () => setIsMobileMenuOpen(false))}
-            </nav>
-          </div>
         </div>
 
-        {/* BOTTOM USER AREA (when authenticated) */}
-        {isAuthenticated && account && (
-          <div className="border-t border-theme-border/70 p-3 bg-slate-50/50">
-            {!isDesktopCollapsed ? (
-              <div className="flex items-center justify-between gap-2">
-                <Link
-                  href="/profile"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-2.5 min-w-0 flex-1 rounded-lg p-1 transition-colors hover:bg-slate-100/80"
-                  title="View Profile"
-                >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
-                    {account.fullName.substring(0, 2).toUpperCase()}
-                  </div>
-                  <div className="min-w-0 flex-1 text-left">
-                    <p className="truncate text-xs font-semibold text-slate-900 leading-tight">
-                      {account.fullName}
-                    </p>
-                    <div className="mt-0.5">
-                      <RoleBadge role={account.role} />
-                    </div>
-                  </div>
-                </Link>
-                <button
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    logout();
-                  }}
-                  disabled={isManualLogoutInProgress}
-                  className={`flex h-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600 focus:outline-none disabled:cursor-not-allowed disabled:opacity-70 ${
-                    isManualLogoutInProgress ? "w-auto gap-1.5 px-2 text-xs text-rose-600" : "w-8"
-                  }`}
-                  title={isManualLogoutInProgress ? "Signing out" : "Sign out"}
-                  aria-label="Sign out"
-                >
-                  <LogOutIcon className="h-4 w-4 shrink-0" />
-                  {isManualLogoutInProgress && <span>Signing out</span>}
-                </button>
+        {/* Account Section */}
+        <div className="shrink-0 border-t border-theme-border/70 bg-slate-50/50 px-3 py-3.5">
+          {!isDesktopCollapsed && (
+            <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+              Account
+            </p>
+          )}
+          <nav className="space-y-0.5">
+            {renderNavLinks(accountLinks, () => setIsMobileMenuOpen(false))}
+            {isAuthenticated && renderLogoutButton()}
+          </nav>
+
+          {isAuthenticated && account && !isDesktopCollapsed && (
+            <div className="mt-3 border-t border-theme-border/60 px-3 pt-3">
+              <p className="truncate text-xs font-semibold text-slate-900 leading-tight">
+                {account.fullName}
+              </p>
+              <div className="mt-1">
+                <RoleBadge role={account.role} />
               </div>
-            ) : (
-              <div className="flex flex-col items-center gap-2">
-                <Link
-                  href="/profile"
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs hover:ring-2 hover:ring-primary/30 transition"
-                  title={`${account.fullName} (${account.role === 1 ? "Admin" : "Staff"})`}
-                >
-                  {account.fullName.substring(0, 2).toUpperCase()}
-                </Link>
-                <button
-                  onClick={() => logout()}
-                  disabled={isManualLogoutInProgress}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600 focus:outline-none disabled:cursor-not-allowed disabled:opacity-70"
-                  title={isManualLogoutInProgress ? "Signing out" : "Sign out"}
-                  aria-label="Sign out"
-                >
-                  {isManualLogoutInProgress ? (
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-rose-500 border-r-transparent" />
-                  ) : (
-                    <LogOutIcon className="h-4 w-4 shrink-0" />
-                  )}
-                </button>
+            </div>
+          )}
+
+          {isAuthenticated && account && isDesktopCollapsed && (
+            <div className="mt-3 flex justify-center border-t border-theme-border/60 pt-3">
+              <div
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs"
+                title={`${account.fullName} (${account.role === 1 ? "Admin" : "Staff"})`}
+              >
+                {account.fullName.substring(0, 2).toUpperCase()}
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </aside>
 
       {/* Mobile Backdrop */}
